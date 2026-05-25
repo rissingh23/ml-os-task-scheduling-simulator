@@ -1079,7 +1079,11 @@ body.manual-page {
 }
 
 .manual-page .app-shell {
-  padding: 0 36px 48px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 22px 40px;
+  overflow-x: hidden;
 }
 
 .manual-page .manual-shell {
@@ -1091,8 +1095,8 @@ body.manual-page {
   align-items: center;
   justify-content: space-between;
   min-height: 80px;
-  margin: 0 -36px 36px;
-  padding: 10px 36px;
+  margin: 0 -22px 28px;
+  padding: 10px 22px;
   border-bottom: 1px solid var(--manual-line);
   background: rgba(244, 251, 255, 0.88);
 }
@@ -1187,9 +1191,9 @@ body.manual-page {
 }
 
 .manual-page .manual-grid {
-  grid-template-columns: 410px minmax(0, 1fr);
-  gap: 34px;
-  margin-bottom: 36px;
+  grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
+  gap: 22px;
+  margin-bottom: 24px;
 }
 
 .manual-page .control-panel,
@@ -1204,8 +1208,8 @@ body.manual-page {
 }
 
 .manual-page .control-panel {
-  padding: 30px;
-  gap: 24px;
+  padding: 22px;
+  gap: 18px;
 }
 
 .manual-page label,
@@ -1220,12 +1224,12 @@ body.manual-page {
 
 .manual-page select,
 .manual-page input[type="number"] {
-  height: 46px;
+  height: 40px;
   border: 2px solid var(--manual-line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.62);
   color: var(--manual-deep);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 900;
 }
 
@@ -1235,12 +1239,12 @@ body.manual-page {
 
 .manual-page output {
   color: var(--manual-blue);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 900;
 }
 
 .manual-page .primary-button {
-  height: 64px;
+  height: 52px;
   border: 0;
   border-radius: 14px;
   background: var(--manual-blue);
@@ -1260,7 +1264,7 @@ body.manual-page {
 
 .manual-page .legend-box span {
   color: #1b9be4;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -1281,9 +1285,9 @@ body.manual-page {
 }
 
 .manual-page .queue-panel .section-heading {
-  min-height: 84px;
+  min-height: 70px;
   margin: 0;
-  padding: 24px 28px;
+  padding: 18px 20px;
   border-bottom: 1px solid #cfeeff;
 }
 
@@ -1304,9 +1308,9 @@ body.manual-page {
 
 .manual-page .manual-head,
 .manual-page .manual-row {
-  grid-template-columns: 92px repeat(4, minmax(112px, 1fr)) 58px;
-  min-width: 920px;
-  padding: 18px 28px;
+  grid-template-columns: 68px repeat(4, minmax(74px, 1fr)) 44px;
+  min-width: 0;
+  padding: 12px 16px;
   border-bottom: 1px solid #d3efff;
 }
 
@@ -1315,55 +1319,55 @@ body.manual-page {
 }
 
 .manual-page .manual-row {
-  min-height: 80px;
+  min-height: 62px;
 }
 
 .manual-page .manual-row strong {
   color: var(--manual-blue);
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .manual-page .manual-row input {
-  height: 40px;
+  height: 32px;
   border-bottom: 3px solid var(--manual-line);
   color: var(--manual-deep);
-  font-size: 21px;
+  font-size: 17px;
 }
 
 .manual-page .delete-button {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 12px;
-  font-size: 20px;
+  font-size: 17px;
 }
 
 .add-process-wrap {
   display: grid;
   place-items: center;
-  min-height: 104px;
+  min-height: 76px;
   background: rgba(232, 247, 255, 0.38);
 }
 
 .add-process-button {
-  min-width: 220px;
-  height: 62px;
+  min-width: 180px;
+  height: 48px;
   border: 3px dashed var(--manual-line);
   border-radius: 16px;
   background: transparent;
   color: var(--manual-blue-2);
   cursor: pointer;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 900;
 }
 
 .manual-page .manual-output {
-  width: min(100%, 1320px);
-  margin-left: 444px;
-  padding: 34px;
+  width: 100%;
+  margin-left: 0;
+  padding: 22px;
 }
 
 .manual-page .manual-output .section-heading {
-  margin-bottom: 28px;
+  margin-bottom: 14px;
 }
 
 .manual-page #manualBadge {
@@ -1382,18 +1386,20 @@ body.manual-page {
 }
 
 .manual-page .gantt-track {
-  height: 82px;
+  min-width: 0;
+  height: 64px;
   border-radius: 16px;
   background: #e7f6ff;
 }
 
 .manual-page .gantt-block {
   color: #123047;
-  font-size: 18px;
+  font-size: 14px;
   border-right: 0;
 }
 
 .manual-page .gantt-ticks {
+  min-width: 0;
   color: #123047;
   font-size: 14px;
   font-weight: 900;
@@ -1401,8 +1407,8 @@ body.manual-page {
 
 .manual-page .comparison-layout {
   grid-template-columns: minmax(0, 1fr);
-  width: min(100%, 1320px);
-  margin: 36px 0 0 444px;
+  width: 100%;
+  margin: 22px 0 0;
 }
 
 .manual-page .chart-section {
@@ -1418,7 +1424,7 @@ body.manual-page {
 .manual-page .rank-section .section-heading,
 .manual-page .chart-section .section-heading {
   margin: 0;
-  padding: 22px 28px;
+  padding: 18px 20px;
   border-bottom: 2px solid var(--manual-deep);
 }
 
@@ -1439,28 +1445,28 @@ body.manual-page {
 
 .manual-page .metrics-head,
 .manual-page .metrics-row {
-  grid-template-columns: 110px repeat(7, minmax(72px, 1fr));
-  min-width: 920px;
-  padding: 17px 30px;
+  grid-template-columns: 74px repeat(7, minmax(48px, 1fr));
+  min-width: 0;
+  padding: 12px 16px;
   border-bottom: 2px solid var(--manual-deep);
   text-align: center;
 }
 
 .manual-page .metrics-row {
-  min-height: 66px;
+  min-height: 54px;
   color: #8da0b7;
-  font-size: 22px;
+  font-size: 17px;
   font-weight: 900;
 }
 
 .manual-page .metrics-row strong {
   justify-self: center;
-  min-width: 54px;
-  padding: 8px 14px;
+  min-width: 44px;
+  padding: 6px 10px;
   border-radius: 9px;
   background: #b7d4f8;
   color: #162c73;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .manual-page .metrics-row span:nth-child(n + 5) {
