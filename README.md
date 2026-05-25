@@ -1,4 +1,4 @@
-# ML-Based OS Task Scheduling Simulator
+# TaskSim Lab: ML-Based OS Task Scheduling Simulator
 
 C++20/Python simulator for comparing classic OS scheduling policies against an ML-guided scheduler.
 
@@ -11,6 +11,17 @@ The project is intentionally structured like a systems interview project:
 - Python training scripts for linear and XGBoost predictors
 - benchmark CSV output and correctness tests
 - browser frontend with an interactive scheduler simulation and performance dashboard
+- Render-ready Python backend serving live XGBoost batch inference
+
+## Demo Surface
+
+The browser app is organized for project demos:
+
+- Manual scheduler: enter tasks, choose a policy, inspect the Gantt chart, process metrics, and model inference.
+- Data simulator: generate workloads and compare FIFO, MLFQ, and ML-guided scheduling behavior.
+- ML method: explain the XGBoost training data, prediction target, score formula, and deployment path.
+
+For a concise recruiter/interviewer overview, see `PROJECT_SUMMARY.md`.
 
 ## Build
 
@@ -62,10 +73,22 @@ Current local model:
 
 ## Deployment
 
-The repo includes the same static deployment shape as the order-book simulator:
+The repo includes a Render backend deployment for the full app:
+
+- `render.yaml`: Python web service
+- `requirements.txt`: XGBoost runtime dependency
+- `runtime.txt`: Python version for Render
+- `models/alibaba_xgboost_100k.json`: lightweight trained model artifact
+
+The Render service serves the frontend and powers `/api/schedule` with real XGBoost batch inference. Health check:
+
+```text
+/api/health
+```
+
+The repo also keeps the same static deployment shape as the order-book simulator:
 
 - `vercel.json`: Vercel static frontend deployment
-- `render.yaml`: Render static site deployment
 - `scripts/prepare_frontend_bundle.sh`: builds the C++ simulator and prepares `frontend/results/`
 
 Deploy settings:
@@ -75,7 +98,7 @@ Build command: bash scripts/prepare_frontend_bundle.sh
 Output directory: frontend
 ```
 
-Static hosting serves the interactive manual builder, data simulator, and ML explanation pages. The hosted manual page still works for FIFO, Round Robin, MLFQ, and local fallback ML-style scheduling. For real Alibaba-trained XGBoost `/api/schedule` inference, run the Python backend locally or deploy it separately as a Python web service with the trained model artifact.
+Static hosting serves the interactive manual builder, data simulator, and ML explanation pages. For the full resume demo with real Alibaba-trained XGBoost inference, use the Render backend.
 
 ## Run Benchmarks
 

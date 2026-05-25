@@ -2,6 +2,7 @@
 import argparse
 import json
 import math
+import os
 import random
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -250,7 +251,16 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        if urlparse(self.path).path == "/api/model":
+        path = urlparse(self.path).path
+        if path == "/api/health":
+            self._json(200, {
+                "ok": True,
+                "service": "tasksim-lab",
+                "model_loaded": MODEL.booster is not None,
+                "model_source": str(MODEL.model_path) if MODEL.model_path else "startup_training",
+            })
+            return
+        if path == "/api/model":
             try:
                 MODEL.ensure_trained()
                 self._json(200, {"ok": True, "model": MODEL.metrics})
@@ -281,9 +291,9 @@ class Handler(SimpleHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description="TaskSim Lab backend and static frontend server.")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=5175)
-    parser.add_argument("--model", default="", help="Optional trained XGBoost model JSON to load instead of startup training.")
+    parser.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "5175")))
+    parser.add_argument("--model", default=os.environ.get("MODEL_PATH", ""), help="Optional trained XGBoost model JSON to load instead of startup training.")
     parser.add_argument("--train-on-start", action="store_true")
     args = parser.parse_args()
     global MODEL
