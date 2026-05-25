@@ -280,7 +280,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="SchedulerLab backend and static frontend server.")
+    parser = argparse.ArgumentParser(description="TaskSim Lab backend and static frontend server.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=5175)
     parser.add_argument("--model", default="", help="Optional trained XGBoost model JSON to load instead of startup training.")
@@ -291,7 +291,7 @@ def main():
     if args.train_on_start:
         MODEL.ensure_trained()
     server = ThreadingHTTPServer((args.host, args.port), Handler)
-    print(f"SchedulerLab running at http://{args.host}:{args.port}/")
+    print(f"TaskSim Lab running at http://{args.host}:{args.port}/")
     server.serve_forever()
 
 
