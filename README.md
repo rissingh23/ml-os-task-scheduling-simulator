@@ -29,15 +29,25 @@ make test
 
 ## Frontend
 
-Open `frontend/index.html` in a browser.
+Run the backend-powered app:
+
+```bash
+/opt/miniconda3/bin/python backend/server.py --port 5175 --train-on-start
+```
+
+Then open:
+
+```text
+http://127.0.0.1:5175/
+```
 
 The frontend has three pages:
 
-- `frontend/index.html`: manual task builder. Add tasks, edit A/R/D/P fields, choose FIFO, MLFQ, Round Robin, or ML-guided, and inspect the Gantt chart, metrics, and trained linear-model inference.
+- `frontend/index.html`: manual task builder. Add tasks, edit A/R/D/P fields, choose FIFO, MLFQ, Round Robin, or ML-guided, and inspect the Gantt chart, metrics, and backend XGBoost batch inference.
 - `frontend/simulator.html`: generated workload simulator. Change workload profile, task count, arrival pressure, seed, and context-switch cost, then compare deadline-miss rate, turnaround time, waiting time, response time, context switches, CPU timeline behavior, and per-dispatch scheduler decisions.
 - `frontend/ml.html`: ML-guided scheduling explainer.
 
-The manual page uses `frontend/trained_model.js`, a linear runtime model trained from simulator-exported features. XGBoost training is available for offline experiments, but the browser UI uses the linear model so every feature contribution can be shown directly.
+The manual page calls `/api/schedule`. For ML-guided scheduling, the backend trains/loads XGBoost, predicts every submitted task in one batch, and returns predictions plus the schedule. This intentionally allows a short loading step instead of pretending inference is free.
 
 ## Run Benchmarks
 

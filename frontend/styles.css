@@ -1364,11 +1364,35 @@ body.manual-page {
   padding: 22px 28px;
 }
 
+.manual-page .model-summary {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border: 2px solid var(--manual-line);
+  border-radius: 12px;
+  background: rgba(231, 246, 255, 0.82);
+}
+
+.manual-page .model-summary strong {
+  color: var(--manual-deep);
+}
+
+.manual-page .model-summary span {
+  color: #557087;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .manual-page .prediction-row {
   grid-template-columns: 60px repeat(3, minmax(0, 1fr));
   border-color: var(--manual-line);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.62);
+}
+
+.manual-page .primary-button:disabled {
+  opacity: 0.58;
+  cursor: wait;
 }
 
 .manual-page .contribution-list {

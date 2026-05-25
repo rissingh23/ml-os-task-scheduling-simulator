@@ -41,43 +41,9 @@ function algorithmDescription(value) {
   return {
     fifo: "Runs the oldest arrived process until completion. Simple, non-preemptive, and easy to inspect.",
     mlfq: "Uses multiple queues. Short interactive jobs stay high; longer jobs are demoted after using their slice.",
-    ml_guided: "Ranks ready processes with a lightweight score preview using runtime, deadline slack, and priority.",
+    ml_guided: "Sends all processes to the backend, runs batched XGBoost prediction, then ranks ready work.",
     rr: "Each process gets a fixed time slice. Preemptive and fair, with extra context-switch overhead.",
   }[value] || "";
-}
-
-function predictRuntime(task, now) {
-  const values = modelFeatureValues(task, task.runtime, now);
-  const raw = TRAINED_RUNTIME_MODEL.features.reduce(
-    (sum, feature) => sum + values[feature.name] * feature.weight,
-    TRAINED_RUNTIME_MODEL.bias,
-  );
-  return Math.max(1, raw);
-}
-
-function mlScore(task, remaining, now) {
-  const slack = Math.max(0, task.deadline - now);
-  return predictRuntime({ ...task, runtime: remaining }, now) + slack * 0.65 - task.priority * 2;
-}
-
-function modelFeatureValues(task, remaining, now) {
-  return {
-    requested_runtime: remaining,
-    deadline_slack: Math.max(0, task.deadline - now),
-    priority: task.priority,
-    io_interval: 0,
-    io_duration: 0,
-    ran_since_io: 0,
-  };
-}
-
-function modelContributions(task) {
-  const values = modelFeatureValues(task, task.runtime, task.arrival);
-  return TRAINED_RUNTIME_MODEL.features.map((feature) => ({
-    ...feature,
-    value: values[feature.name],
-    contribution: values[feature.name] * feature.weight,
-  }));
 }
 
 function readTasksFromDom() {
@@ -160,7 +126,8 @@ function simulateManual(tasks, algorithm, quantum) {
     let bestIndex = 0;
     let bestScore = Infinity;
     ready.forEach((id, index) => {
-      const score = mlScore(items[id], items[id].remaining, now);
+      const slack = Math.max(0, items[id].deadline - now);
+      const score = items[id].remaining + slack * 0.65 - items[id].priority * 2;
       if (score < bestScore) {
         bestScore = score;
         bestIndex = index;
@@ -263,43 +230,71 @@ function renderMetrics(result) {
   `;
 }
 
-function renderPredictions(tasks) {
-  const ranked = tasks.map((task) => ({
-    ...task,
-    predicted: predictRuntime(task, task.arrival),
-    score: mlScore(task, task.runtime, task.arrival),
-    contributions: modelContributions(task),
-  })).sort((a, b) => a.score - b.score);
-  els.predictions.innerHTML = ranked.map((task) => `
+function renderPredictions(result) {
+  const decisions = result.decisions || [];
+  const firstDecision = decisions.find((decision) => decision.candidates && decision.candidates.length) || {};
+  const candidateMap = new Map((firstDecision.candidates || []).map((candidate) => [candidate.id, candidate]));
+  const ranked = [...result.metrics].map((task) => {
+    const candidate = candidateMap.get(task.id);
+    const slack = Math.max(0, task.deadline - task.arrival);
+    const score = candidate ? candidate.score : task.predicted + slack * 0.65 - task.priority * 2;
+    return { ...task, score };
+  }).sort((a, b) => a.score - b.score);
+  const model = result.model || {};
+  els.predictions.innerHTML = `
+    <div class="model-summary">
+      <strong>${result.algorithm === "ml_guided" ? "XGBoost batch inference" : "Model not used"}</strong>
+      <span>${result.algorithm === "ml_guided" ? `trained rows ${model.rows || "--"} / RMSE ${model.rmse ? model.rmse.toFixed(2) : "--"}` : "Choose ML-guided to run backend prediction."}</span>
+    </div>
+    ${ranked.map((task) => `
     <div class="prediction-row">
       <strong>P${task.id}</strong>
-      <span>runtime ${task.predicted.toFixed(2)}</span>
+      <span>pred ${task.predicted.toFixed(2)}</span>
       <span>score ${task.score.toFixed(2)}</span>
       <span>${task.score === ranked[0].score ? "first ML pick" : "candidate"}</span>
-      <div class="contribution-list">
-        ${task.contributions.slice(0, 3).map((item) => `
-          <em>${item.label}: ${item.value} x ${item.weight.toFixed(4)} = ${item.contribution.toFixed(2)}</em>
-        `).join("")}
-        <em>bias: ${TRAINED_RUNTIME_MODEL.bias.toFixed(2)}</em>
-      </div>
     </div>
-  `).join("");
+  `).join("")}`;
 }
 
-function run() {
+async function requestSchedule(tasks, algorithm, quantum) {
+  const response = await fetch("/api/schedule", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({tasks, algorithm, quantum}),
+  });
+  const payload = await response.json();
+  if (!payload.ok) {
+    throw new Error(payload.error || "schedule request failed");
+  }
+  return payload;
+}
+
+async function run() {
   state.tasks = readTasksFromDom();
   const algorithm = els.algorithm.value;
   const quantum = Number(els.quantum.value);
-  const result = simulateManual(state.tasks, algorithm, quantum);
-  els.badge.textContent = `${algorithmLabel(algorithm)}${algorithm === "rr" || algorithm === "ml_guided" ? ` / q=${quantum}` : ""}`;
-  renderGantt(result);
-  renderMetrics(result);
-  renderPredictions(state.tasks);
-  els.queueCount.textContent = `${state.tasks.length} / 15`;
-  els.algorithmCopy.innerHTML = `
-    <strong>${algorithmLabel(algorithm)}</strong>
-    <span>${algorithmDescription(algorithm)}</span>
-  `;
+  els.badge.textContent = algorithm === "ml_guided" ? "Predicting..." : "Simulating...";
+  els.runButton.disabled = true;
+  try {
+    const result = await requestSchedule(state.tasks, algorithm, quantum);
+    els.badge.textContent = `${algorithmLabel(algorithm)}${algorithm === "rr" || algorithm === "ml_guided" ? ` / q=${quantum}` : ""}`;
+    renderGantt(result);
+    renderMetrics(result);
+    renderPredictions(result);
+    els.queueCount.textContent = `${state.tasks.length} / 15`;
+    els.algorithmCopy.innerHTML = `
+      <strong>${algorithmLabel(algorithm)}</strong>
+      <span>${algorithmDescription(algorithm)}</span>
+    `;
+  } catch (error) {
+    const fallback = simulateManual(state.tasks, algorithm, quantum);
+    els.badge.textContent = "Backend unavailable";
+    renderGantt(fallback);
+    renderMetrics(fallback);
+    els.predictions.innerHTML = `<div class="model-summary"><strong>XGBoost backend unavailable</strong><span>${error.message}</span></div>`;
+  } finally {
+    els.runButton.disabled = false;
+  }
 }
 
 function reset() {
