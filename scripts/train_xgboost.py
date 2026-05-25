@@ -2,12 +2,16 @@
 import argparse
 import csv
 import json
+import math
 import sys
 
 try:
     import xgboost as xgb
-except Exception:
+except Exception as exc:
     xgb = None
+    XGBOOST_IMPORT_ERROR = exc
+else:
+    XGBOOST_IMPORT_ERROR = None
 
 
 FEATURE_NAMES = [
@@ -37,7 +41,8 @@ def main():
     args = parser.parse_args()
 
     if xgb is None:
-        print("xgboost is not installed. Install it or use scripts/train_linear.py first.", file=sys.stderr)
+        print(f"xgboost is unavailable: {XGBOOST_IMPORT_ERROR}", file=sys.stderr)
+        print("On macOS, xgboost may also require libomp.dylib from Homebrew or Conda.", file=sys.stderr)
         raise SystemExit(1)
 
     xs, ys = load_rows(args.input)
@@ -53,8 +58,17 @@ def main():
         "colsample_bytree": 0.85,
     }
     booster = xgb.train(params, dtrain, num_boost_round=args.rounds, evals=[(dtest, "test")], verbose_eval=False)
+    predictions = booster.predict(dtest)
+    rmse = math.sqrt(sum((float(pred) - float(label)) ** 2 for pred, label in zip(predictions, ys[split:])) / max(1, len(predictions)))
     booster.save_model(args.output)
-    print(json.dumps({"output": args.output, "rows": len(xs), "test_rows": len(xs) - split}, indent=2))
+    importance = booster.get_score(importance_type="gain")
+    print(json.dumps({
+        "output": args.output,
+        "rows": len(xs),
+        "test_rows": len(xs) - split,
+        "rmse": rmse,
+        "feature_importance_gain": importance,
+    }, indent=2))
 
 
 if __name__ == "__main__":

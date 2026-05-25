@@ -29,11 +29,15 @@
             score = predicted_runtime + 0.65 x deadline_slack - 2 x priority
           </div>
           <p>
-            The manual page uses a bundled linear model trained from simulator-exported features. XGBoost training is included for offline experiments, but the browser currently runs the trained linear model because it is transparent and easy to inspect.
+            The manual page uses a bundled linear model trained from simulator-exported features. The backend pipeline also supports XGBoost: Python trains the model and writes batched task predictions, while the C++ scheduler consumes those predictions with cheap lookup.
           </p>
         </section>
 
         <aside class="explainer-side">
+          <div class="decision-card">
+            <strong>XGBoost deployment</strong>
+            <p>Use `batch_predict_xgboost.py` to write `task_id,predicted_runtime`. This avoids running tree inference inside the scheduler loop.</p>
+          </div>
           <div class="decision-card">
             <strong>Training status</strong>
             <p>Yes: `scripts/train_linear.py` trains the linear runtime predictor consumed by C++ and mirrored in `frontend/trained_model.js` for the manual page.</p>

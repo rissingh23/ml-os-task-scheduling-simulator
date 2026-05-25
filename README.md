@@ -67,7 +67,56 @@ For XGBoost:
 python3 scripts/train_xgboost.py --input results/features.csv --output results/runtime_xgboost.json
 ```
 
-The C++ simulator currently consumes the linear CSV model for online scheduling. XGBoost is included for offline runtime-prediction experiments.
+For XGBoost batch inference:
+
+```bash
+python3 scripts/batch_predict_xgboost.py \
+  --model results/runtime_xgboost.json \
+  --input results/features.csv \
+  --output results/runtime_xgboost_predictions.csv \
+  --batch-size 4096
+
+./build/scheduler_sim \
+  --mode benchmark \
+  --profile deadline_tight \
+  --tasks 5000 \
+  --batch-predictions results/runtime_xgboost_predictions.csv \
+  --output results/xgboost_batch_scheduler.csv
+```
+
+The scheduler hot path does not evaluate XGBoost trees directly. Python runs XGBoost in batches and writes `task_id,predicted_runtime`; C++ loads that compact CSV and does O(1) prediction lookup per ready task. This is the intended low-overhead deployment path.
+
+On macOS, the Python `xgboost` package may require `libomp.dylib`. If import fails with an OpenMP error, install XGBoost through Conda or install `libomp` with Homebrew.
+
+## Cluster Trace Normalization
+
+The repo includes trace normalizers for real cluster workloads:
+
+```bash
+python3 scripts/normalize_alibaba_trace.py \
+  --input path/to/batch_task.csv \
+  --output data/alibaba_tasks.csv \
+  --limit 100000
+
+python3 scripts/normalize_borg_trace.py \
+  --input path/to/borg_tasks.csv \
+  --output data/borg_tasks.csv \
+  --limit 100000
+```
+
+Then export features and train:
+
+```bash
+./build/scheduler_sim --mode export-features --trace data/alibaba_tasks.csv --output results/alibaba_features.csv
+python3 scripts/train_xgboost.py --input results/alibaba_features.csv --output results/alibaba_xgboost.json
+python3 scripts/batch_predict_xgboost.py --model results/alibaba_xgboost.json --input results/alibaba_features.csv --output results/alibaba_xgb_predictions.csv
+./build/scheduler_sim --mode benchmark --trace data/alibaba_tasks.csv --batch-predictions results/alibaba_xgb_predictions.csv --output results/alibaba_xgb_scheduler.csv
+```
+
+Known public sources:
+
+- Google Borg traces: `google/cluster-data`
+- Alibaba cluster trace v2018: `alibaba/clusterdata/cluster-trace-v2018`
 
 ## Trace Format
 

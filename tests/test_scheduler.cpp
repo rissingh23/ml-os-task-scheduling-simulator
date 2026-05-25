@@ -4,6 +4,8 @@
 #include "sched/workload.hpp"
 
 #include <cassert>
+#include <filesystem>
+#include <fstream>
 #include <span>
 #include <vector>
 
@@ -83,6 +85,20 @@ int main() {
     const auto output = sched::run_simulation(scheduler, "tiny", tiny_workload(), {.context_switch_cost = 0});
     assert(output.summary.scheduler_name == "ml_guided");
     assert(output.summary.deadline_miss_rate >= 0.0);
+  }
+
+  {
+    std::filesystem::create_directories("build");
+    {
+      std::ofstream out("build/test_batch_predictions.csv");
+      out << "task_id,predicted_runtime\n";
+      out << "0,3.5\n";
+      out << "1,9.25\n";
+    }
+    const auto predictor = sched::load_batch_runtime_predictions("build/test_batch_predictions.csv");
+    auto tasks = tiny_workload();
+    assert(predictor.predict_runtime(tasks[0], 0) == 3.5);
+    assert(predictor.predict_runtime(tasks[1], 0) == 9.25);
   }
 
   {
