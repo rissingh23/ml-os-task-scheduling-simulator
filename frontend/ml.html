@@ -23,24 +23,24 @@
         <section class="explainer-main">
           <h2>What the model predicts</h2>
           <p>
-            The scheduler estimates how expensive a ready task is likely to be, then combines that runtime estimate with deadline pressure and priority. Lower score wins.
+            The online scheduler estimates how expensive a ready task is likely to be, then combines that runtime estimate with deadline pressure and priority. Lower score wins.
           </p>
           <div class="formula-box">
             score = predicted_runtime + 0.65 x deadline_slack - 2 x priority
           </div>
           <p>
-            In the C++ path, the online scheduler can load a small linear runtime model from CSV. The browser demo uses the same scoring idea directly in JavaScript so the decision inspector can show the live score for every candidate task.
+            The manual page uses a bundled linear model trained from simulator-exported features. XGBoost training is included for offline experiments, but the browser currently runs the trained linear model because it is transparent and easy to inspect.
           </p>
         </section>
 
         <aside class="explainer-side">
           <div class="decision-card">
-            <strong>Decision rule</strong>
-            <p>At each dispatch point, rank all ready tasks by score and run the lowest-scoring task.</p>
+            <strong>Training status</strong>
+            <p>Yes: `scripts/train_linear.py` trains the linear runtime predictor consumed by C++ and mirrored in `frontend/trained_model.js` for the manual page.</p>
           </div>
           <div class="decision-card">
-            <strong>Preemption</strong>
-            <p>The browser ML policy uses a 16-tick slice to re-evaluate the ready set without thrashing on every tick.</p>
+            <strong>What it learned</strong>
+            <p>With the current synthetic labels, runtime is mostly explained by burst length. The UI shows each feature contribution so this is visible instead of hidden.</p>
           </div>
         </aside>
       </section>
@@ -68,6 +68,7 @@
             <li>Export runtime features with `--mode export-features`.</li>
             <li>Train a linear model or XGBoost regressor.</li>
             <li>Load the linear model into the C++ online scheduler.</li>
+            <li>Mirror the trained linear weights in the browser for inspectable manual scheduling.</li>
           </ol>
         </div>
         <div class="chart-section">

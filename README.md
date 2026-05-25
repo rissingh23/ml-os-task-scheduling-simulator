@@ -33,9 +33,11 @@ Open `frontend/index.html` in a browser.
 
 The frontend has three pages:
 
-- `frontend/index.html`: manual task builder. Add tasks, edit A/R/D/P fields, choose FIFO, MLFQ, Round Robin, or ML-guided, and inspect the Gantt chart, metrics, and ML predictions.
+- `frontend/index.html`: manual task builder. Add tasks, edit A/R/D/P fields, choose FIFO, MLFQ, Round Robin, or ML-guided, and inspect the Gantt chart, metrics, and trained linear-model inference.
 - `frontend/simulator.html`: generated workload simulator. Change workload profile, task count, arrival pressure, seed, and context-switch cost, then compare deadline-miss rate, turnaround time, waiting time, response time, context switches, CPU timeline behavior, and per-dispatch scheduler decisions.
 - `frontend/ml.html`: ML-guided scheduling explainer.
+
+The manual page uses `frontend/trained_model.js`, a linear runtime model trained from simulator-exported features. XGBoost training is available for offline experiments, but the browser UI uses the linear model so every feature contribution can be shown directly.
 
 ## Run Benchmarks
 

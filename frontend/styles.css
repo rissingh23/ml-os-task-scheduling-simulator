@@ -1365,9 +1365,25 @@ body.manual-page {
 }
 
 .manual-page .prediction-row {
+  grid-template-columns: 60px repeat(3, minmax(0, 1fr));
   border-color: var(--manual-line);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.62);
+}
+
+.manual-page .contribution-list {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 5px;
+  padding-top: 8px;
+  border-top: 1px solid var(--manual-line);
+}
+
+.manual-page .contribution-list em {
+  color: #557087;
+  font-size: 12px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes enter {

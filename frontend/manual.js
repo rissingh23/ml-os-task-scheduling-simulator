@@ -47,13 +47,37 @@ function algorithmDescription(value) {
 }
 
 function predictRuntime(task, now) {
-  const slack = Math.max(0, task.deadline - now);
-  return Math.max(1, task.runtime - task.priority * 0.2 - slack * 0.02);
+  const values = modelFeatureValues(task, task.runtime, now);
+  const raw = TRAINED_RUNTIME_MODEL.features.reduce(
+    (sum, feature) => sum + values[feature.name] * feature.weight,
+    TRAINED_RUNTIME_MODEL.bias,
+  );
+  return Math.max(1, raw);
 }
 
 function mlScore(task, remaining, now) {
   const slack = Math.max(0, task.deadline - now);
   return predictRuntime({ ...task, runtime: remaining }, now) + slack * 0.65 - task.priority * 2;
+}
+
+function modelFeatureValues(task, remaining, now) {
+  return {
+    requested_runtime: remaining,
+    deadline_slack: Math.max(0, task.deadline - now),
+    priority: task.priority,
+    io_interval: 0,
+    io_duration: 0,
+    ran_since_io: 0,
+  };
+}
+
+function modelContributions(task) {
+  const values = modelFeatureValues(task, task.runtime, task.arrival);
+  return TRAINED_RUNTIME_MODEL.features.map((feature) => ({
+    ...feature,
+    value: values[feature.name],
+    contribution: values[feature.name] * feature.weight,
+  }));
 }
 
 function readTasksFromDom() {
@@ -244,6 +268,7 @@ function renderPredictions(tasks) {
     ...task,
     predicted: predictRuntime(task, task.arrival),
     score: mlScore(task, task.runtime, task.arrival),
+    contributions: modelContributions(task),
   })).sort((a, b) => a.score - b.score);
   els.predictions.innerHTML = ranked.map((task) => `
     <div class="prediction-row">
@@ -251,6 +276,12 @@ function renderPredictions(tasks) {
       <span>runtime ${task.predicted.toFixed(2)}</span>
       <span>score ${task.score.toFixed(2)}</span>
       <span>${task.score === ranked[0].score ? "first ML pick" : "candidate"}</span>
+      <div class="contribution-list">
+        ${task.contributions.slice(0, 3).map((item) => `
+          <em>${item.label}: ${item.value} x ${item.weight.toFixed(4)} = ${item.contribution.toFixed(2)}</em>
+        `).join("")}
+        <em>bias: ${TRAINED_RUNTIME_MODEL.bias.toFixed(2)}</em>
+      </div>
     </div>
   `).join("");
 }
