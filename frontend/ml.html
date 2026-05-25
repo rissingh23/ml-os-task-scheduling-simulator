@@ -29,24 +29,50 @@
             score = predicted_runtime + 0.65 x deadline_slack - 2 x priority
           </div>
           <p>
-            The manual page uses a bundled linear model trained from simulator-exported features. The backend pipeline also supports XGBoost: Python trains the model and writes batched task predictions, while the C++ scheduler consumes those predictions with cheap lookup.
+            The running app loads an XGBoost model trained on a normalized sample of the real Alibaba cluster trace. When you enter tasks manually, the frontend sends every task to the backend, the backend predicts all runtimes in one batch, then the scheduler uses those predictions.
           </p>
+          <div class="pipeline-diagram" aria-label="ML training and inference pipeline">
+            <div class="pipe-node"><span>1</span><strong>Alibaba trace</strong><em>batch_task.csv</em></div>
+            <div class="pipe-arrow">to</div>
+            <div class="pipe-node"><span>2</span><strong>Normalize</strong><em>arrival, burst, deadline, priority</em></div>
+            <div class="pipe-arrow">to</div>
+            <div class="pipe-node"><span>3</span><strong>Train XGBoost</strong><em>runtime regression</em></div>
+            <div class="pipe-arrow">to</div>
+            <div class="pipe-node"><span>4</span><strong>Batch predict</strong><em>manual tasks or trace tasks</em></div>
+            <div class="pipe-arrow">to</div>
+            <div class="pipe-node"><span>5</span><strong>Schedule</strong><em>rank ready tasks by score</em></div>
+          </div>
         </section>
 
         <aside class="explainer-side">
           <div class="decision-card">
-            <strong>XGBoost deployment</strong>
-            <p>Use `batch_predict_xgboost.py` to write `task_id,predicted_runtime`. This avoids running tree inference inside the scheduler loop.</p>
+            <strong>Current model</strong>
+            <p>Loaded from `results/models/alibaba_xgboost_100k.json`, trained on 100,000 normalized Alibaba batch tasks.</p>
           </div>
           <div class="decision-card">
-            <strong>Training status</strong>
-            <p>Yes: `scripts/train_linear.py` trains the linear runtime predictor consumed by C++ and mirrored in `frontend/trained_model.js` for the manual page.</p>
+            <strong>Manual page inference</strong>
+            <p>The task builder calls `/api/schedule`. For ML-guided mode, the backend predicts every submitted task with XGBoost before simulating.</p>
           </div>
           <div class="decision-card">
-            <strong>What it learned</strong>
-            <p>With the current synthetic labels, runtime is mostly explained by burst length. The UI shows each feature contribution so this is visible instead of hidden.</p>
+            <strong>Real-data result</strong>
+            <p>On a 3,000-task Alibaba sample, XGBoost-guided scheduling reduced average turnaround versus MLFQ in the local benchmark.</p>
           </div>
         </aside>
+      </section>
+
+      <section class="rank-section model-facts">
+        <div class="section-heading">
+          <h2>Local training artifact</h2>
+          <span>Real Alibaba trace sample</span>
+        </div>
+        <div class="fact-grid">
+          <div><span>Trace source</span><strong>Alibaba cluster-trace-v2018</strong></div>
+          <div><span>Raw table</span><strong>batch_task.csv</strong></div>
+          <div><span>Training rows</span><strong>100,000</strong></div>
+          <div><span>Validation RMSE</span><strong>26.71</strong></div>
+          <div><span>Model file</span><strong>alibaba_xgboost_100k.json</strong></div>
+          <div><span>Top features</span><strong>runtime, slack, priority</strong></div>
+        </div>
       </section>
 
       <section class="rank-section">
@@ -68,11 +94,12 @@
         <div class="rank-section">
           <h2>Training flow</h2>
           <ol class="plain-list">
-            <li>Generate or normalize task traces.</li>
+            <li>Download Alibaba `batch_task.csv`.</li>
+            <li>Normalize rows into simulator tasks.</li>
             <li>Export runtime features with `--mode export-features`.</li>
-            <li>Train a linear model or XGBoost regressor.</li>
-            <li>Load the linear model into the C++ online scheduler.</li>
-            <li>Mirror the trained linear weights in the browser for inspectable manual scheduling.</li>
+            <li>Train XGBoost to predict observed runtime.</li>
+            <li>Load the trained model in the backend.</li>
+            <li>Batch-predict manual or generated tasks before scheduling.</li>
           </ol>
         </div>
         <div class="chart-section">

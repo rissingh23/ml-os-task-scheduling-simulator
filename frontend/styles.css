@@ -715,6 +715,91 @@ output {
   font-variant-numeric: tabular-nums;
 }
 
+.pipeline-diagram {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) 34px minmax(130px, 1fr) 34px minmax(130px, 1fr) 34px minmax(130px, 1fr) 34px minmax(130px, 1fr);
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 8px;
+}
+
+.pipe-node {
+  display: grid;
+  gap: 7px;
+  min-height: 126px;
+  padding: 13px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+}
+
+.pipe-node span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pipe-node strong,
+.pipe-node em {
+  display: block;
+}
+
+.pipe-node em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.pipe-arrow {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.model-facts {
+  margin-bottom: 18px;
+}
+
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.fact-grid div {
+  min-height: 86px;
+  padding: 14px;
+  background: #fffdf8;
+}
+
+.fact-grid span,
+.fact-grid strong {
+  display: block;
+}
+
+.fact-grid span {
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.fact-grid strong {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
 .feature-table {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1430,6 +1515,14 @@ body.manual-page {
     grid-template-columns: 1fr;
   }
 
+  .pipeline-diagram {
+    grid-template-columns: 1fr;
+  }
+
+  .pipe-arrow {
+    min-height: 24px;
+  }
+
   .manual-controls {
     position: static;
   }
@@ -1478,7 +1571,8 @@ body.manual-page {
   .metric-strip,
   .task-grid,
   .live-strip,
-  .feature-table {
+  .feature-table,
+  .fact-grid {
     grid-template-columns: 1fr;
   }
 
