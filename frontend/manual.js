@@ -10,13 +10,14 @@ const els = {
   runButton: document.querySelector("#manualRunButton"),
   resetButton: document.querySelector("#manualResetButton"),
   addButton: document.querySelector("#addTaskButton"),
+  queueCount: document.querySelector("#queueCount"),
+  algorithmCopy: document.querySelector("#algorithmCopy"),
   table: document.querySelector("#manualTable"),
   gantt: document.querySelector("#manualGantt"),
   metrics: document.querySelector("#manualMetrics"),
   averages: document.querySelector("#manualAverages"),
   badge: document.querySelector("#manualBadge"),
   predictions: document.querySelector("#predictionList"),
-  status: document.querySelector("#manualStatus"),
 };
 
 function defaultTasks() {
@@ -34,6 +35,15 @@ function algorithmLabel(value) {
     ml_guided: "ML-guided",
     rr: "Round Robin",
   }[value] || value;
+}
+
+function algorithmDescription(value) {
+  return {
+    fifo: "Runs the oldest arrived process until completion. Simple, non-preemptive, and easy to inspect.",
+    mlfq: "Uses multiple queues. Short interactive jobs stay high; longer jobs are demoted after using their slice.",
+    ml_guided: "Ranks ready processes with a lightweight score preview using runtime, deadline slack, and priority.",
+    rr: "Each process gets a fixed time slice. Preemptive and fair, with extra context-switch overhead.",
+  }[value] || "";
 }
 
 function predictRuntime(task, now) {
@@ -58,9 +68,14 @@ function readTasksFromDom() {
 }
 
 function renderTaskRows() {
+  els.queueCount.textContent = `${state.tasks.length} / 15`;
+  els.algorithmCopy.innerHTML = `
+    <strong>${algorithmLabel(els.algorithm.value)}</strong>
+    <span>${algorithmDescription(els.algorithm.value)}</span>
+  `;
   els.table.innerHTML = `
     <div class="manual-head">
-      <span>PID</span><span>A</span><span>R</span><span>D</span><span>P</span><span>Del</span>
+      <span>PID</span><span>Arrival</span><span>Burst</span><span>Deadline</span><span>Priority</span><span>Del</span>
     </div>
     ${state.tasks.map((task) => `
       <div class="manual-row" data-id="${task.id}">
@@ -212,9 +227,9 @@ function renderMetrics(result) {
   const avgTat = result.metrics.reduce((sum, task) => sum + task.tat, 0) / count;
   const avgWt = result.metrics.reduce((sum, task) => sum + task.wt, 0) / count;
   const avgRt = result.metrics.reduce((sum, task) => sum + task.rt, 0) / count;
-  els.averages.textContent = `Avg TAT ${avgTat.toFixed(2)} / WT ${avgWt.toFixed(2)} / RT ${avgRt.toFixed(2)}`;
+  els.averages.innerHTML = `Avg TAT: <b>${avgTat.toFixed(2)}</b> &nbsp; Avg WT: <b>${avgWt.toFixed(2)}</b> &nbsp; Avg RT: <b>${avgRt.toFixed(2)}</b>`;
   els.metrics.innerHTML = `
-    <div class="metrics-head"><span>PID</span><span>A</span><span>R</span><span>D</span><span>CT</span><span>TAT</span><span>WT</span><span>RT</span></div>
+    <div class="metrics-head"><span>PID</span><span>Arrival</span><span>Burst</span><span>Deadline</span><span>CT</span><span>TAT</span><span>WT</span><span>RT</span></div>
     ${result.metrics.map((task) => `
       <div class="metrics-row ${task.missed ? "is-missed" : ""}">
         <strong>P${task.id}</strong><span>${task.arrival}</span><span>${task.runtime}</span><span>${task.deadline}</span>
@@ -233,7 +248,7 @@ function renderPredictions(tasks) {
   els.predictions.innerHTML = ranked.map((task) => `
     <div class="prediction-row">
       <strong>P${task.id}</strong>
-      <span>pred ${task.predicted.toFixed(2)}</span>
+      <span>runtime ${task.predicted.toFixed(2)}</span>
       <span>score ${task.score.toFixed(2)}</span>
       <span>${task.score === ranked[0].score ? "first ML pick" : "candidate"}</span>
     </div>
@@ -249,7 +264,11 @@ function run() {
   renderGantt(result);
   renderMetrics(result);
   renderPredictions(state.tasks);
-  els.status.textContent = "Updated";
+  els.queueCount.textContent = `${state.tasks.length} / 15`;
+  els.algorithmCopy.innerHTML = `
+    <strong>${algorithmLabel(algorithm)}</strong>
+    <span>${algorithmDescription(algorithm)}</span>
+  `;
 }
 
 function reset() {
@@ -268,6 +287,7 @@ els.runButton.addEventListener("click", run);
 els.resetButton.addEventListener("click", reset);
 els.addButton.addEventListener("click", () => {
   state.tasks = readTasksFromDom();
+  if (state.tasks.length >= 15) return;
   const id = state.nextId;
   state.nextId += 1;
   state.tasks.push({ id, arrival: 0, runtime: 4, deadline: 10 + id, priority: 1 });

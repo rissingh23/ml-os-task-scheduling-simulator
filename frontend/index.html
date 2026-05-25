@@ -6,17 +6,24 @@
     <title>SchedulerLab Task Builder</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="manual-page">
     <main class="app-shell manual-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">CPU Scheduling Visualizer</p>
-          <h1>SchedulerLab</h1>
+      <header class="manual-topbar">
+        <div class="manual-brand">
+          <div class="brand-mark">SX</div>
+          <div>
+            <h1>SCHEDULRX</h1>
+            <p>CPU Scheduling Visualizer</p>
+          </div>
         </div>
         <div class="top-actions">
+          <button id="manualResetButton" class="reset-pill" type="button">Reset</button>
+          <div class="theme-pill" aria-label="Theme toggle preview">
+            <span class="theme-dot">S</span>
+            <span class="theme-moon">M</span>
+          </div>
           <a class="text-link" href="simulator.html">Data simulator</a>
           <a class="text-link" href="ml.html">ML method</a>
-          <div class="run-status" id="manualStatus">Ready</div>
         </div>
       </header>
 
@@ -25,22 +32,21 @@
           <div class="field">
             <label for="manualAlgorithm">Algorithm</label>
             <select id="manualAlgorithm">
-              <option value="ml_guided">ML-guided</option>
-              <option value="fifo">FIFO</option>
-              <option value="mlfq">MLFQ</option>
-              <option value="rr">Round Robin</option>
+              <option value="rr">RR - Round Robin</option>
+              <option value="ml_guided">ML - ML-guided</option>
+              <option value="fifo">FIFO - First In First Out</option>
+              <option value="mlfq">MLFQ - Multi-Level Feedback Queue</option>
             </select>
           </div>
 
           <div class="field">
             <label for="manualQuantum">Time quantum</label>
-            <input id="manualQuantum" type="range" min="1" max="12" value="3" step="1" />
-            <output id="manualQuantumValue">3 ticks</output>
+            <input id="manualQuantum" type="range" min="1" max="12" value="2" step="1" />
+            <output id="manualQuantumValue">2 ticks</output>
           </div>
 
           <div class="button-row">
-            <button id="manualRunButton" class="primary-button" type="button">Run schedule</button>
-            <button id="manualResetButton" class="icon-button" type="button" aria-label="Reset tasks" title="Reset tasks">R</button>
+            <button id="manualRunButton" class="primary-button" type="button">Run simulation</button>
           </div>
 
           <div class="legend-box">
@@ -50,14 +56,18 @@
             <span><b>D</b> = deadline</span>
             <span><b>P</b> = priority, 0 low to 4 high</span>
           </div>
+          <div class="legend-box algorithm-copy" id="algorithmCopy"></div>
         </aside>
 
         <section class="queue-panel">
           <div class="section-heading">
             <h2>Process queue</h2>
-            <button id="addTaskButton" class="small-button" type="button">Add task</button>
+            <span class="queue-count" id="queueCount">3 / 15</span>
           </div>
           <div class="manual-table" id="manualTable"></div>
+          <div class="add-process-wrap">
+            <button id="addTaskButton" class="add-process-button" type="button">+ Add Process</button>
+          </div>
         </section>
       </section>
 
@@ -80,8 +90,8 @@
 
         <section class="chart-section">
           <div class="section-heading">
-            <h2>ML predictions</h2>
-            <span>Used by ML-guided scheduling</span>
+            <h2>ML score preview</h2>
+            <span>Browser heuristic, not trained XGBoost</span>
           </div>
           <div class="prediction-list" id="predictionList"></div>
         </section>
