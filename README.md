@@ -60,6 +60,23 @@ Current local model:
 - Validation RMSE from training run: `26.71`
 - Top gain features: requested runtime, deadline slack, priority
 
+## Deployment
+
+The repo includes the same static deployment shape as the order-book simulator:
+
+- `vercel.json`: Vercel static frontend deployment
+- `render.yaml`: Render static site deployment
+- `scripts/prepare_frontend_bundle.sh`: builds the C++ simulator and prepares `frontend/results/`
+
+Deploy settings:
+
+```text
+Build command: bash scripts/prepare_frontend_bundle.sh
+Output directory: frontend
+```
+
+Static hosting serves the interactive manual builder, data simulator, and ML explanation pages. The hosted manual page still works for FIFO, Round Robin, MLFQ, and local fallback ML-style scheduling. For real Alibaba-trained XGBoost `/api/schedule` inference, run the Python backend locally or deploy it separately as a Python web service with the trained model artifact.
+
 ## Run Benchmarks
 
 ```bash
