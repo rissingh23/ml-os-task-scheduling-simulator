@@ -23,16 +23,29 @@ FEATURE_NAMES = ["requested_runtime", "deadline_slack", "priority", "io_interval
 
 
 class ModelStore:
-    def __init__(self):
+    def __init__(self, model_path=None):
         self.booster = None
         self.metrics = {}
         self.trained_at = None
+        self.model_path = Path(model_path) if model_path else None
 
     def ensure_trained(self):
         if self.booster is not None:
             return
         if xgb is None:
             raise RuntimeError(f"xgboost unavailable: {XGBOOST_IMPORT_ERROR}")
+        if self.model_path:
+            if not self.model_path.exists():
+                raise RuntimeError(f"XGBoost model file not found: {self.model_path}")
+            self.booster = xgb.Booster()
+            self.booster.load_model(str(self.model_path))
+            self.metrics = {
+                "source": str(self.model_path),
+                "mode": "loaded_real_trace_model",
+                "importance": self.booster.get_score(importance_type="gain"),
+            }
+            self.trained_at = time.time()
+            return
 
         rng = random.Random(42)
         xs, ys = [], []
@@ -81,7 +94,6 @@ class ModelStore:
         matrix = xgb.DMatrix(xs, feature_names=FEATURE_NAMES)
         raw = self.booster.predict(matrix)
         return {task["id"]: max(1.0, float(prediction)) for task, prediction in zip(tasks, raw)}
-
 
 MODEL = ModelStore()
 
@@ -271,8 +283,11 @@ def main():
     parser = argparse.ArgumentParser(description="SchedulerLab backend and static frontend server.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=5175)
+    parser.add_argument("--model", default="", help="Optional trained XGBoost model JSON to load instead of startup training.")
     parser.add_argument("--train-on-start", action="store_true")
     args = parser.parse_args()
+    global MODEL
+    MODEL = ModelStore(args.model or None)
     if args.train_on_start:
         MODEL.ensure_trained()
     server = ThreadingHTTPServer((args.host, args.port), Handler)

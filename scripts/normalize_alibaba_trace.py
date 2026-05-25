@@ -4,6 +4,18 @@ import csv
 import json
 import math
 
+ALIBABA_BATCH_TASK_COLUMNS = [
+    "task_name",
+    "instance_num",
+    "job_name",
+    "task_type",
+    "status",
+    "start_time",
+    "end_time",
+    "plan_cpu",
+    "plan_mem",
+]
+
 
 def first_present(row, names, default=""):
     for name in names:
@@ -30,10 +42,16 @@ def main():
     written = 0
     min_start = None
     with open(args.input, newline="") as source, open(args.output, "w", newline="") as dest:
-        reader = csv.DictReader(source)
+        sample = source.readline()
+        source.seek(0)
+        has_header = "start_time" in sample or "task_name" in sample
+        reader = csv.DictReader(source) if has_header else csv.DictReader(source, fieldnames=ALIBABA_BATCH_TASK_COLUMNS)
         writer = csv.writer(dest)
         writer.writerow(["arrival_time", "runtime", "deadline", "priority", "io_interval", "io_duration"])
         for row in reader:
+            status = first_present(row, ["status"], "")
+            if status and status.lower() not in ("terminated", "finished", "success"):
+                continue
             start = to_float(first_present(row, ["start_time", "start_timestamp", "start", "ts"], "0"))
             end = to_float(first_present(row, ["end_time", "end_timestamp", "end"], str(start + 1)))
             if min_start is None:

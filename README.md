@@ -32,7 +32,10 @@ make test
 Run the backend-powered app:
 
 ```bash
-/opt/miniconda3/bin/python backend/server.py --port 5175 --train-on-start
+/opt/miniconda3/bin/python backend/server.py \
+  --port 5175 \
+  --model results/models/alibaba_xgboost_100k.json \
+  --train-on-start
 ```
 
 Then open:
@@ -48,6 +51,14 @@ The frontend has three pages:
 - `frontend/ml.html`: ML-guided scheduling explainer.
 
 The manual page calls `/api/schedule`. For ML-guided scheduling, the backend trains/loads XGBoost, predicts every submitted task in one batch, and returns predictions plus the schedule. This intentionally allows a short loading step instead of pretending inference is free.
+
+Current local model:
+
+- Training source: real Alibaba `cluster-trace-v2018` `batch_task.csv`
+- Sample: first 100,000 terminated batch tasks normalized into simulator task rows
+- Model: `results/models/alibaba_xgboost_100k.json`
+- Validation RMSE from training run: `26.71`
+- Top gain features: requested runtime, deadline slack, priority
 
 ## Run Benchmarks
 
