@@ -2,6 +2,10 @@ const state = {
   metric: "missRate",
   results: [],
   tasks: [],
+  playhead: 0,
+  playing: false,
+  timer: null,
+  pinnedTask: null,
 };
 
 const els = {
@@ -22,6 +26,12 @@ const els = {
   barChart: document.querySelector("#barChart"),
   timeline: document.querySelector("#timeline"),
   timelineScheduler: document.querySelector("#timelineScheduler"),
+  playButton: document.querySelector("#playButton"),
+  stepBackButton: document.querySelector("#stepBackButton"),
+  stepForwardButton: document.querySelector("#stepForwardButton"),
+  timeScrubber: document.querySelector("#timeScrubber"),
+  timeReadout: document.querySelector("#timeReadout"),
+  liveStrip: document.querySelector("#liveStrip"),
   selectedTask: document.querySelector("#selectedTask"),
   taskGrid: document.querySelector("#taskGrid"),
 };
@@ -294,7 +304,7 @@ function renderMetrics(best, baseline) {
 
 function renderTable(results) {
   els.schedulerTable.innerHTML = results.map((result) => `
-    <div class="scheduler-row">
+    <div class="scheduler-row" data-scheduler="${result.name}">
       <div class="scheduler-name">${result.label}</div>
       <div class="cell"><span>Miss</span><strong>${formatPct(result.missRate)}</strong></div>
       <div class="cell"><span>Turn</span><strong>${formatNum(result.turnaround)}</strong></div>
@@ -302,6 +312,13 @@ function renderTable(results) {
       <div class="cell"><span>Switch</span><strong>${result.switches.toLocaleString()}</strong></div>
     </div>
   `).join("");
+
+  els.schedulerTable.querySelectorAll(".scheduler-row").forEach((row) => {
+    row.addEventListener("click", () => {
+      els.timelineScheduler.value = row.dataset.scheduler;
+      updatePlayhead(state.playhead);
+    });
+  });
 }
 
 function renderChart(results) {
@@ -335,41 +352,150 @@ function coalesceSegments(segments) {
   return merged;
 }
 
-function renderTimeline(result) {
-  const makespan = Math.max(1, result.makespan);
-  const chunks = coalesceSegments(result.segments).slice(0, 260);
-  els.timeline.innerHTML = `
-    <div class="lane">
-      <div class="lane-label"><span>${result.label} CPU</span><span>${result.makespan} ticks</span></div>
-      <div class="lane-track">
-        ${chunks.map((segment) => {
-          const left = (segment.start / makespan) * 100;
-          const width = Math.max(0.18, ((segment.end - segment.start) / makespan) * 100);
-          return `<div class="segment-block" data-task="${segment.taskId}" data-start="${segment.start}" data-end="${segment.end}" style="left:${left}%;width:${width}%"></div>`;
-        }).join("")}
+function selectedResult() {
+  return state.results.find((item) => item.name === els.timelineScheduler.value) || state.results[0];
+}
+
+function renderTimeline(results) {
+  const globalMakespan = Math.max(1, ...results.map((result) => result.makespan));
+  els.timeline.innerHTML = results.map((result) => {
+    const chunks = coalesceSegments(result.segments).slice(0, 320);
+    return `
+      <div class="lane" data-lane="${result.name}">
+        <div class="lane-label"><span>${result.label} CPU</span><span>${result.makespan} ticks</span></div>
+        <div class="lane-track" data-scheduler="${result.name}">
+          <div class="playhead"></div>
+          ${chunks.map((segment) => {
+            const left = (segment.start / globalMakespan) * 100;
+            const width = Math.max(0.18, ((segment.end - segment.start) / globalMakespan) * 100);
+            return `<div class="segment-block" data-scheduler="${result.name}" data-task="${segment.taskId}" data-start="${segment.start}" data-end="${segment.end}" style="left:${left}%;width:${width}%"></div>`;
+          }).join("")}
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  }).join("");
 
   els.timeline.querySelectorAll(".segment-block").forEach((block) => {
-    block.addEventListener("mouseenter", () => {
-      const task = result.tasks[Number(block.dataset.task)];
-      els.selectedTask.innerHTML = `
-        <span>Selected task</span>
-        <strong>T${task.id} ran ${block.dataset.start}-${block.dataset.end}; arrival ${task.arrival}, deadline ${task.deadline}, finish ${task.finish}, ${task.missed ? "missed" : "met"}.</strong>
-      `;
+    const show = () => showTaskDetail(block.dataset.scheduler, Number(block.dataset.task), Number(block.dataset.start), Number(block.dataset.end));
+    block.addEventListener("mouseenter", show);
+    block.addEventListener("click", () => {
+      state.pinnedTask = Number(block.dataset.task);
+      show();
+      renderTaskGrid(state.tasks);
     });
   });
+  updatePlayhead(state.playhead);
+}
+
+function showTaskDetail(schedulerName, taskId, start, end) {
+  const result = state.results.find((item) => item.name === schedulerName) || selectedResult();
+  const task = result.tasks[taskId];
+  if (!task) return;
+  const slack = task.deadline - task.finish;
+  els.selectedTask.innerHTML = `
+    <span>Selected task</span>
+    <strong>${result.label} T${task.id}: ran ${start}-${end}; arrival ${task.arrival}, runtime ${task.runtime}, deadline ${task.deadline}, finish ${task.finish}, slack ${slack}, ${task.missed ? "missed" : "met"}.</strong>
+  `;
+}
+
+function currentSegment(result, time) {
+  return result.segments.find((segment) => segment.start <= time && segment.end > time);
+}
+
+function tasksCompleted(result, time) {
+  return result.tasks.filter((task) => task.finish <= time).length;
+}
+
+function missesSoFar(result, time) {
+  return result.tasks.filter((task) => task.finish <= time && task.missed).length;
+}
+
+function readyAt(result, time) {
+  const active = currentSegment(result, time);
+  return result.tasks.filter((task) => task.arrival <= time && task.finish > time && (!active || active.taskId !== task.id)).length;
+}
+
+function updateLiveStrip(result, time) {
+  if (!result) return;
+  const active = currentSegment(result, time);
+  const cells = [
+    ["Focus", result.label],
+    ["Running", active ? `T${active.taskId}` : "Idle"],
+    ["Completed", `${tasksCompleted(result, time)} / ${result.tasks.length}`],
+    ["Misses so far", missesSoFar(result, time).toString()],
+    ["Ready pressure", readyAt(result, time).toString()],
+    ["CPU util", formatPct(result.utilization)],
+    ["Makespan", result.makespan.toString()],
+    ["Switches", result.switches.toLocaleString()],
+  ];
+  els.liveStrip.innerHTML = cells.map(([label, value]) => `
+    <div class="live-cell"><span>${label}</span><strong>${value}</strong></div>
+  `).join("");
+}
+
+function updatePlayhead(time) {
+  const max = Math.max(1, Number(els.timeScrubber.max));
+  state.playhead = Math.max(0, Math.min(max, Math.round(time)));
+  els.timeScrubber.value = String(state.playhead);
+  els.timeReadout.textContent = `t=${state.playhead}`;
+  const left = `${(state.playhead / max) * 100}%`;
+  document.querySelectorAll(".lane-track").forEach((track) => {
+    track.style.setProperty("--playhead-left", left);
+  });
+  document.querySelectorAll(".segment-block").forEach((block) => {
+    const start = Number(block.dataset.start);
+    const end = Number(block.dataset.end);
+    block.classList.toggle("is-past", end <= state.playhead);
+    block.classList.toggle("is-active", start <= state.playhead && end > state.playhead);
+    block.classList.toggle("is-future", start > state.playhead);
+  });
+  updateLiveStrip(selectedResult(), state.playhead);
 }
 
 function renderTaskGrid(tasks) {
   els.taskGrid.innerHTML = tasks.slice(0, 12).map((task) => `
-    <div class="task-tile">
+    <div class="task-tile ${state.pinnedTask === task.id ? "is-selected" : ""}" data-task="${task.id}">
       <strong>T${task.id}</strong>
       <span>a ${task.arrival} · r ${task.runtime}</span>
       <span>d ${task.deadline} · p ${task.priority}</span>
     </div>
   `).join("");
+
+  els.taskGrid.querySelectorAll(".task-tile").forEach((tile) => {
+    tile.addEventListener("click", () => {
+      state.pinnedTask = Number(tile.dataset.task);
+      const result = selectedResult();
+      const segment = result.segments.find((item) => item.taskId === state.pinnedTask);
+      if (segment) {
+        updatePlayhead(segment.start);
+        showTaskDetail(result.name, state.pinnedTask, segment.start, segment.end);
+      }
+      renderTaskGrid(state.tasks);
+    });
+  });
+}
+
+function stopPlayback() {
+  state.playing = false;
+  els.playButton.textContent = "Play";
+  if (state.timer) {
+    window.clearInterval(state.timer);
+    state.timer = null;
+  }
+}
+
+function startPlayback() {
+  stopPlayback();
+  state.playing = true;
+  els.playButton.textContent = "Pause";
+  state.timer = window.setInterval(() => {
+    const max = Number(els.timeScrubber.max);
+    if (state.playhead >= max) {
+      stopPlayback();
+      return;
+    }
+    updatePlayhead(state.playhead + Math.max(1, Math.round(max / 220)));
+  }, 55);
 }
 
 function run() {
@@ -383,6 +509,9 @@ function run() {
   state.tasks = generateTasks(profile, count, seed, load);
   const results = ["fifo", "mlfq", "ml_guided"].map((kind) => simulate(kind, state.tasks, contextSwitch));
   state.results = results;
+  stopPlayback();
+  state.playhead = 0;
+  state.pinnedTask = null;
 
   const best = [...results].sort((a, b) => a.missRate - b.missRate || a.turnaround - b.turnaround)[0];
   const baseline = results.find((result) => result.name === "mlfq");
@@ -393,7 +522,8 @@ function run() {
 
   els.timelineScheduler.innerHTML = results.map((result) => `<option value="${result.name}">${result.label}</option>`).join("");
   els.timelineScheduler.value = best.name;
-  renderTimeline(best);
+  els.timeScrubber.max = String(Math.max(...results.map((result) => result.makespan)));
+  renderTimeline(results);
   renderTaskGrid(state.tasks);
   els.runStatus.textContent = "Updated";
 }
@@ -410,8 +540,20 @@ els.randomizeButton.addEventListener("click", () => {
   run();
 });
 els.timelineScheduler.addEventListener("change", () => {
-  const result = state.results.find((item) => item.name === els.timelineScheduler.value);
-  if (result) renderTimeline(result);
+  updatePlayhead(state.playhead);
+});
+els.playButton.addEventListener("click", () => {
+  if (state.playing) {
+    stopPlayback();
+  } else {
+    startPlayback();
+  }
+});
+els.stepBackButton.addEventListener("click", () => updatePlayhead(state.playhead - 10));
+els.stepForwardButton.addEventListener("click", () => updatePlayhead(state.playhead + 10));
+els.timeScrubber.addEventListener("input", () => {
+  stopPlayback();
+  updatePlayhead(Number(els.timeScrubber.value));
 });
 document.querySelectorAll(".segment").forEach((button) => {
   button.addEventListener("click", () => {

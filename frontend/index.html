@@ -92,6 +92,16 @@
               <h2>Execution timeline</h2>
               <select id="timelineScheduler" aria-label="Timeline scheduler"></select>
             </div>
+            <div class="playback-panel">
+              <div class="playback-buttons">
+                <button id="playButton" class="small-button" type="button">Play</button>
+                <button id="stepBackButton" class="small-button" type="button">-10</button>
+                <button id="stepForwardButton" class="small-button" type="button">+10</button>
+              </div>
+              <input id="timeScrubber" type="range" min="0" max="1" value="0" step="1" aria-label="Simulation time" />
+              <div class="time-readout" id="timeReadout">t=0</div>
+            </div>
+            <div class="live-strip" id="liveStrip"></div>
             <div class="timeline" id="timeline"></div>
           </section>
 
