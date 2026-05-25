@@ -33,7 +33,7 @@ function algorithmLabel(value) {
     fifo: "FIFO",
     mlfq: "MLFQ",
     ml_guided: "ML-guided",
-    rr: "Round Robin",
+    rr: "RR",
   }[value] || value;
 }
 

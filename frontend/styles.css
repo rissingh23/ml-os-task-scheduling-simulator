@@ -1122,7 +1122,7 @@ body.manual-page {
 
 .manual-brand h1 {
   color: var(--manual-deep);
-  font-size: 27px;
+  font-size: 25px;
   line-height: 1;
   font-weight: 900;
   letter-spacing: 0;
@@ -1134,7 +1134,7 @@ body.manual-page {
   font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.18em;
 }
 
 .manual-page .top-actions {
@@ -1363,20 +1363,31 @@ body.manual-page {
 .manual-page .manual-output {
   width: 100%;
   margin-left: 0;
-  padding: 22px;
+  padding: 0;
 }
 
 .manual-page .manual-output .section-heading {
-  margin-bottom: 14px;
+  margin: 0;
+  padding: 18px 20px;
+  border-bottom: 1px solid #cfeeff;
 }
 
 .manual-page #manualBadge {
-  padding: 9px 14px;
+  max-width: 190px;
+  padding: 8px 12px;
   border: 2px solid var(--manual-line);
   border-radius: 12px;
   background: #e7f6ff;
   color: var(--manual-blue);
+  font-size: 14px;
   font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-body {
+  padding: 18px 20px 22px;
 }
 
 .manual-page .manual-gantt {
@@ -1426,12 +1437,16 @@ body.manual-page {
   margin: 0;
   padding: 18px 20px;
   border-bottom: 2px solid var(--manual-deep);
+  flex-wrap: wrap;
+  align-items: start;
 }
 
 .manual-page #manualAverages {
   color: #8da0b7;
   font-size: 16px;
   font-weight: 900;
+  max-width: 100%;
+  line-height: 1.6;
 }
 
 .manual-page #manualAverages b {
@@ -1474,7 +1489,7 @@ body.manual-page {
 }
 
 .manual-page .prediction-list {
-  padding: 22px 28px;
+  padding: 0;
 }
 
 .manual-page .model-summary {

@@ -10,9 +10,9 @@
     <main class="app-shell manual-shell">
       <header class="manual-topbar">
         <div class="manual-brand">
-          <div class="brand-mark">SX</div>
+          <div class="brand-mark">SL</div>
           <div>
-            <h1>SCHEDULRX</h1>
+            <h1>SchedulerLab</h1>
             <p>CPU Scheduling Visualizer</p>
           </div>
         </div>
@@ -78,8 +78,10 @@
           <h2>Gantt chart</h2>
           <span id="manualBadge">ML-guided</span>
         </div>
-        <p class="section-help">Each colored block shows which process owns the CPU during that time range.</p>
-        <div class="manual-gantt" id="manualGantt"></div>
+        <div class="panel-body">
+          <p class="section-help">Each colored block shows which process owns the CPU during that time range.</p>
+          <div class="manual-gantt" id="manualGantt"></div>
+        </div>
       </section>
 
       <section class="comparison-layout">
@@ -88,8 +90,10 @@
             <h2>Process metrics</h2>
             <span id="manualAverages">Avg TAT -- / WT -- / RT --</span>
           </div>
-          <p class="section-help">CT is finish time. TAT is total time in the system. WT is time spent waiting. RT is first response delay.</p>
-          <div class="metrics-table" id="manualMetrics"></div>
+          <div class="panel-body">
+            <p class="section-help">CT is finish time. TAT is total time in the system. WT is time spent waiting. RT is first response delay.</p>
+            <div class="metrics-table" id="manualMetrics"></div>
+          </div>
         </section>
 
         <section class="chart-section">
@@ -97,8 +101,10 @@
             <h2>Trained model inference</h2>
             <span>Alibaba-trained XGBoost</span>
           </div>
-          <p class="section-help">Prediction estimates CPU runtime. Score combines prediction, deadline pressure, and priority; lower score runs sooner.</p>
-          <div class="prediction-list" id="predictionList"></div>
+          <div class="panel-body">
+            <p class="section-help">Prediction estimates CPU runtime. Score combines prediction, deadline pressure, and priority; lower score runs sooner.</p>
+            <div class="prediction-list" id="predictionList"></div>
+          </div>
         </section>
       </section>
     </main>
