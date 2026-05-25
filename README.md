@@ -10,6 +10,7 @@ The project is intentionally structured like a systems interview project:
 - feature export for runtime-prediction models
 - Python training scripts for linear and XGBoost predictors
 - benchmark CSV output and correctness tests
+- browser frontend with an interactive scheduler simulation and performance dashboard
 
 ## Build
 
@@ -25,6 +26,12 @@ If CMake is not installed:
 make
 make test
 ```
+
+## Frontend
+
+Open `frontend/index.html` in a browser.
+
+The frontend runs a browser-side simulator for FIFO, MLFQ, and ML-guided scheduling. It lets you change workload profile, task count, arrival pressure, seed, and context-switch cost, then compares deadline-miss rate, turnaround time, waiting time, response time, context switches, and CPU timeline behavior.
 
 ## Run Benchmarks
 

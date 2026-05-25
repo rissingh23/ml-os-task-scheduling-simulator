@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SchedulerLab</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">ML-Based OS Task Scheduling Simulator</p>
+          <h1>SchedulerLab</h1>
+        </div>
+        <div class="run-status" id="runStatus">Ready</div>
+      </header>
+
+      <section class="workspace">
+        <aside class="control-panel">
+          <div class="field">
+            <label for="profile">Workload</label>
+            <select id="profile">
+              <option value="deadline_tight">Deadline tight</option>
+              <option value="balanced">Balanced</option>
+              <option value="io_heavy">I/O heavy</option>
+              <option value="bursty">Bursty</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="taskCount">Tasks</label>
+            <input id="taskCount" type="range" min="40" max="420" value="160" step="20" />
+            <output id="taskCountValue">160</output>
+          </div>
+
+          <div class="field">
+            <label for="load">Arrival pressure</label>
+            <input id="load" type="range" min="65" max="155" value="100" step="5" />
+            <output id="loadValue">100%</output>
+          </div>
+
+          <div class="field">
+            <label for="seed">Seed</label>
+            <input id="seed" type="number" min="1" max="9999" value="42" />
+          </div>
+
+          <div class="field">
+            <label for="contextSwitch">Context switch</label>
+            <input id="contextSwitch" type="range" min="0" max="8" value="1" step="1" />
+            <output id="contextSwitchValue">1 tick</output>
+          </div>
+
+          <div class="button-row">
+            <button id="runButton" class="primary-button" type="button">Run</button>
+            <button id="randomizeButton" class="icon-button" type="button" aria-label="New seed" title="New seed">↻</button>
+          </div>
+
+          <div class="selected-task" id="selectedTask">
+            <span>Selected task</span>
+            <strong>Hover a timeline segment</strong>
+          </div>
+        </aside>
+
+        <section class="main-panel">
+          <div class="metric-strip" id="metricStrip"></div>
+
+          <div class="comparison-layout">
+            <section class="rank-section">
+              <div class="section-heading">
+                <h2>Scheduler comparison</h2>
+                <span id="bestScheduler">Best: --</span>
+              </div>
+              <div class="scheduler-table" id="schedulerTable"></div>
+            </section>
+
+            <section class="chart-section">
+              <div class="section-heading">
+                <h2>Performance</h2>
+                <div class="segmented" role="tablist" aria-label="Chart metric">
+                  <button class="segment is-active" data-metric="missRate" type="button">Miss</button>
+                  <button class="segment" data-metric="turnaround" type="button">Turn</button>
+                  <button class="segment" data-metric="switches" type="button">Switch</button>
+                </div>
+              </div>
+              <div class="bar-chart" id="barChart"></div>
+            </section>
+          </div>
+
+          <section class="timeline-section">
+            <div class="section-heading">
+              <h2>Execution timeline</h2>
+              <select id="timelineScheduler" aria-label="Timeline scheduler"></select>
+            </div>
+            <div class="timeline" id="timeline"></div>
+          </section>
+
+          <section class="task-section">
+            <div class="section-heading">
+              <h2>Task sample</h2>
+              <span id="sampleScope">First 12 arrivals</span>
+            </div>
+            <div class="task-grid" id="taskGrid"></div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
