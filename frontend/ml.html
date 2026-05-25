@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SchedulerLab ML Method</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell explainer-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Model inspection</p>
+          <h1>ML-guided scheduling</h1>
+        </div>
+        <div class="top-actions">
+          <a class="text-link" href="index.html">Simulator</a>
+        </div>
+      </header>
+
+      <section class="explainer-grid">
+        <section class="explainer-main">
+          <h2>What the model predicts</h2>
+          <p>
+            The scheduler estimates how expensive a ready task is likely to be, then combines that runtime estimate with deadline pressure and priority. Lower score wins.
+          </p>
+          <div class="formula-box">
+            score = predicted_runtime + 0.65 x deadline_slack - 2 x priority
+          </div>
+          <p>
+            In the C++ path, the online scheduler can load a small linear runtime model from CSV. The browser demo uses the same scoring idea directly in JavaScript so the decision inspector can show the live score for every candidate task.
+          </p>
+        </section>
+
+        <aside class="explainer-side">
+          <div class="decision-card">
+            <strong>Decision rule</strong>
+            <p>At each dispatch point, rank all ready tasks by score and run the lowest-scoring task.</p>
+          </div>
+          <div class="decision-card">
+            <strong>Preemption</strong>
+            <p>The browser ML policy uses a 16-tick slice to re-evaluate the ready set without thrashing on every tick.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="rank-section">
+        <div class="section-heading">
+          <h2>Features</h2>
+          <span>Exported by the simulator</span>
+        </div>
+        <div class="feature-table">
+          <div><strong>requested_runtime</strong><span>Task runtime request or remaining CPU burst estimate.</span></div>
+          <div><strong>deadline_slack</strong><span>Time left before deadline at the dispatch point.</span></div>
+          <div><strong>priority</strong><span>User or workload priority, higher means more urgent.</span></div>
+          <div><strong>io_interval</strong><span>How frequently the task blocks for I/O.</span></div>
+          <div><strong>io_duration</strong><span>Expected I/O wait duration after blocking.</span></div>
+          <div><strong>ran_since_io</strong><span>CPU time consumed since the last I/O block.</span></div>
+        </div>
+      </section>
+
+      <section class="comparison-layout explainer-steps">
+        <div class="rank-section">
+          <h2>Training flow</h2>
+          <ol class="plain-list">
+            <li>Generate or normalize task traces.</li>
+            <li>Export runtime features with `--mode export-features`.</li>
+            <li>Train a linear model or XGBoost regressor.</li>
+            <li>Load the linear model into the C++ online scheduler.</li>
+          </ol>
+        </div>
+        <div class="chart-section">
+          <h2>Why this is useful</h2>
+          <p class="body-copy">
+            FIFO is easy to reason about but ignores urgency. MLFQ responds quickly but can create high context-switch overhead. The ML-guided policy tries to identify short, urgent, high-priority work before it turns into deadline misses.
+          </p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

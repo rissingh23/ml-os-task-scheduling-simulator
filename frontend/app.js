@@ -26,6 +26,9 @@ const els = {
   barChart: document.querySelector("#barChart"),
   timeline: document.querySelector("#timeline"),
   timelineScheduler: document.querySelector("#timelineScheduler"),
+  decisionSummary: document.querySelector("#decisionSummary"),
+  zoomStage: document.querySelector("#zoomStage"),
+  decisionPanel: document.querySelector("#decisionPanel"),
   playButton: document.querySelector("#playButton"),
   stepBackButton: document.querySelector("#stepBackButton"),
   stepForwardButton: document.querySelector("#stepForwardButton"),
@@ -124,6 +127,7 @@ function simulate(kind, sourceTasks, contextSwitchCost) {
   const queues = [[], [], []];
   const quantums = [2, 4, 8];
   const segments = [];
+  const decisions = [];
   let now = tasks[0]?.arrival ?? 0;
   let nextArrival = 0;
   let finished = 0;
@@ -138,6 +142,31 @@ function simulate(kind, sourceTasks, contextSwitchCost) {
     } else {
       ready.push(id);
     }
+  };
+
+  const scoreCandidate = (id) => {
+    const task = tasks[id];
+    const slack = Math.max(0, task.deadline - now);
+    const predicted = predictor(task, now);
+    const score = predicted + slack * 0.65 - task.priority * 2;
+    return { taskId: id, predicted, slack, priority: task.priority, score, level: meta[id].level, remaining: task.remaining };
+  };
+
+  const readyCandidateIds = () => {
+    if (kind === "mlfq") {
+      return queues.flatMap((queue, level) => queue.map((id) => ({ id, level })));
+    }
+    return ready.map((id) => ({ id, level: 0 }));
+  };
+
+  const explainDecision = () => {
+    const candidates = readyCandidateIds().map(({ id, level }) => ({ ...scoreCandidate(id), level }));
+    return {
+      time: now,
+      scheduler: kind,
+      queueDepth: candidates.length,
+      candidates,
+    };
   };
 
   const pick = () => {
@@ -185,8 +214,14 @@ function simulate(kind, sourceTasks, contextSwitchCost) {
     }
 
     if (running === null) {
+      const decision = explainDecision();
       const next = pick();
       if (next !== undefined) {
+        decisions.push({
+          ...decision,
+          chosen: next,
+          reason: decisionReason(kind, next, decision.candidates),
+        });
         running = next;
         slice = 0;
         switches += 1;
@@ -273,8 +308,21 @@ function simulate(kind, sourceTasks, contextSwitchCost) {
     utilization: now ? busy / now : 0,
     makespan: now,
     segments,
+    decisions,
     tasks: taskResults,
   };
+}
+
+function decisionReason(kind, chosen, candidates) {
+  if (kind === "fifo") {
+    return `FIFO chooses T${chosen} because it is the oldest ready task.`;
+  }
+  if (kind === "mlfq") {
+    const candidate = candidates.find((item) => item.taskId === chosen);
+    return `MLFQ chooses T${chosen} from queue ${candidate?.level ?? 0}; higher queues run before lower queues.`;
+  }
+  const candidate = candidates.find((item) => item.taskId === chosen);
+  return `ML-guided chooses T${chosen} with the lowest score: predicted runtime + 0.65 x slack - 2 x priority = ${formatNum(candidate?.score ?? 0)}.`;
 }
 
 function formatPct(value) {
@@ -433,6 +481,67 @@ function updateLiveStrip(result, time) {
   `).join("");
 }
 
+function nearestDecision(result, time) {
+  if (!result || !result.decisions.length) return null;
+  return result.decisions.reduce((best, item) => (
+    Math.abs(item.time - time) < Math.abs(best.time - time) ? item : best
+  ), result.decisions[0]);
+}
+
+function renderDecisionInspection(result, time) {
+  const decision = nearestDecision(result, time);
+  if (!result || !decision) {
+    els.zoomStage.innerHTML = "";
+    els.decisionPanel.innerHTML = "";
+    return;
+  }
+
+  const radius = 70;
+  const start = Math.max(0, time - radius);
+  const end = Math.min(result.makespan, time + radius);
+  const span = Math.max(1, end - start);
+  const visible = coalesceSegments(result.segments)
+    .filter((segment) => segment.end >= start && segment.start <= end)
+    .slice(0, 60);
+
+  els.decisionSummary.textContent = `${result.label} dispatch at t=${decision.time}`;
+  els.zoomStage.innerHTML = `
+    <div class="zoom-window">
+      <div class="zoom-playhead"></div>
+      ${visible.map((segment) => {
+        const left = ((Math.max(segment.start, start) - start) / span) * 100;
+        const width = Math.max(1, ((Math.min(segment.end, end) - Math.max(segment.start, start)) / span) * 100);
+        return `<div class="zoom-block" style="left:${left}%;width:${width}%">T${segment.taskId}</div>`;
+      }).join("")}
+    </div>
+    <div class="zoom-scale"><span>t=${start}</span><span>t=${time}</span><span>t=${end}</span></div>
+  `;
+
+  const sortedCandidates = [...decision.candidates].sort((a, b) => {
+    if (result.name === "mlfq") return a.level - b.level || a.taskId - b.taskId;
+    if (result.name === "ml_guided") return a.score - b.score;
+    return a.taskId - b.taskId;
+  }).slice(0, 8);
+
+  els.decisionPanel.innerHTML = `
+    <div class="decision-card">
+      <strong>${decision.reason}</strong>
+      <p>Ready queue depth was ${decision.queueDepth}. The rows below show the tasks the scheduler could choose from at that dispatch point.</p>
+    </div>
+    <div class="candidate-grid">
+      ${sortedCandidates.map((candidate) => `
+        <div class="candidate-row ${candidate.taskId === decision.chosen ? "is-chosen" : ""}">
+          <strong>T${candidate.taskId}</strong>
+          <div><span>Remain</span><strong>${candidate.remaining}</strong></div>
+          <div><span>Slack</span><strong>${formatNum(candidate.slack)}</strong></div>
+          <div><span>Q/Pri</span><strong>${result.name === "mlfq" ? `Q${candidate.level}` : candidate.priority}</strong></div>
+          <div><span>Score</span><strong>${result.name === "ml_guided" ? formatNum(candidate.score) : "--"}</strong></div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 function updatePlayhead(time) {
   const max = Math.max(1, Number(els.timeScrubber.max));
   state.playhead = Math.max(0, Math.min(max, Math.round(time)));
@@ -449,15 +558,17 @@ function updatePlayhead(time) {
     block.classList.toggle("is-active", start <= state.playhead && end > state.playhead);
     block.classList.toggle("is-future", start > state.playhead);
   });
-  updateLiveStrip(selectedResult(), state.playhead);
+  const result = selectedResult();
+  updateLiveStrip(result, state.playhead);
+  renderDecisionInspection(result, state.playhead);
 }
 
 function renderTaskGrid(tasks) {
   els.taskGrid.innerHTML = tasks.slice(0, 12).map((task) => `
     <div class="task-tile ${state.pinnedTask === task.id ? "is-selected" : ""}" data-task="${task.id}">
       <strong>T${task.id}</strong>
-      <span>a ${task.arrival} · r ${task.runtime}</span>
-      <span>d ${task.deadline} · p ${task.priority}</span>
+      <span>a ${task.arrival} / r ${task.runtime}</span>
+      <span>d ${task.deadline} / p ${task.priority}</span>
     </div>
   `).join("");
 

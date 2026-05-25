@@ -13,7 +13,10 @@
           <p class="eyebrow">ML-Based OS Task Scheduling Simulator</p>
           <h1>SchedulerLab</h1>
         </div>
-        <div class="run-status" id="runStatus">Ready</div>
+        <div class="top-actions">
+          <a class="text-link" href="ml.html">ML method</a>
+          <div class="run-status" id="runStatus">Ready</div>
+        </div>
       </header>
 
       <section class="workspace">
@@ -53,7 +56,7 @@
 
           <div class="button-row">
             <button id="runButton" class="primary-button" type="button">Run</button>
-            <button id="randomizeButton" class="icon-button" type="button" aria-label="New seed" title="New seed">↻</button>
+            <button id="randomizeButton" class="icon-button" type="button" aria-label="New seed" title="New seed">R</button>
           </div>
 
           <div class="selected-task" id="selectedTask">
@@ -103,6 +106,17 @@
             </div>
             <div class="live-strip" id="liveStrip"></div>
             <div class="timeline" id="timeline"></div>
+          </section>
+
+          <section class="inspection-section">
+            <div class="section-heading">
+              <h2>Decision inspection</h2>
+              <span id="decisionSummary">Nearest dispatch</span>
+            </div>
+            <div class="inspection-layout">
+              <div class="zoom-stage" id="zoomStage"></div>
+              <div class="decision-panel" id="decisionPanel"></div>
+            </div>
           </section>
 
           <section class="task-section">

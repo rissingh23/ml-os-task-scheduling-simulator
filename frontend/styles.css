@@ -76,6 +76,19 @@ h2 {
   background: rgba(255, 250, 242, 0.72);
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.text-link {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--ink);
+  font-size: 14px;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: 292px minmax(0, 1fr);
@@ -250,12 +263,128 @@ output {
 .rank-section,
 .chart-section,
 .timeline-section,
+.inspection-section,
 .task-section {
   min-width: 0;
   padding: 18px;
   background: var(--panel);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
+}
+
+.inspection-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 18px;
+}
+
+.zoom-stage {
+  display: grid;
+  gap: 10px;
+}
+
+.zoom-window {
+  position: relative;
+  min-height: 126px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(to right, rgba(23, 23, 23, 0.08) 1px, transparent 1px),
+    #fffdf8;
+  background-size: 40px 100%;
+  overflow: hidden;
+}
+
+.zoom-block {
+  position: absolute;
+  top: 34px;
+  height: 44px;
+  min-width: 4px;
+  background: var(--accent);
+  border: 1px solid rgba(23, 23, 23, 0.18);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.zoom-block:nth-child(3n) {
+  background: var(--violet);
+}
+
+.zoom-block:nth-child(4n) {
+  background: var(--alert);
+}
+
+.zoom-playhead {
+  position: absolute;
+  inset: 0 auto 0 50%;
+  width: 2px;
+  background: var(--ink);
+  z-index: 5;
+}
+
+.zoom-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.candidate-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.candidate-row {
+  display: grid;
+  grid-template-columns: 54px repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  align-items: center;
+  padding: 9px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+}
+
+.candidate-row.is-chosen {
+  border-color: var(--accent);
+  background: #ecfdf5;
+}
+
+.candidate-row span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.candidate-row strong {
+  display: block;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.decision-panel {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.decision-card {
+  padding: 12px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+}
+
+.decision-card strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.decision-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .section-heading {
@@ -540,6 +669,92 @@ output {
   font-variant-numeric: tabular-nums;
 }
 
+.explainer-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.explainer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.explainer-main,
+.explainer-side {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.explainer-main {
+  padding: 22px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.explainer-main h2 {
+  font-size: 22px;
+}
+
+.explainer-main p,
+.body-copy {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.formula-box {
+  padding: 18px;
+  background: var(--ink);
+  color: white;
+  font-size: clamp(18px, 1.8rem, 28px);
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+.feature-table {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.feature-table div {
+  min-height: 78px;
+  padding: 12px;
+  background: #fffdf8;
+}
+
+.feature-table strong,
+.feature-table span {
+  display: block;
+}
+
+.feature-table strong {
+  margin-bottom: 7px;
+}
+
+.feature-table span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.plain-list {
+  margin: 14px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.explainer-steps {
+  margin-top: 18px;
+}
+
 @keyframes enter {
   from {
     opacity: 0;
@@ -553,7 +768,9 @@ output {
 
 @media (max-width: 980px) {
   .workspace,
-  .comparison-layout {
+  .comparison-layout,
+  .inspection-layout,
+  .explainer-grid {
     grid-template-columns: 1fr;
   }
 
@@ -600,7 +817,8 @@ output {
 
   .metric-strip,
   .task-grid,
-  .live-strip {
+  .live-strip,
+  .feature-table {
     grid-template-columns: 1fr;
   }
 
