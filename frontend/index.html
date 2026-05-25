@@ -3,133 +3,91 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SchedulerLab</title>
+    <title>SchedulerLab Task Builder</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <main class="app-shell manual-shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">ML-Based OS Task Scheduling Simulator</p>
+          <p class="eyebrow">CPU Scheduling Visualizer</p>
           <h1>SchedulerLab</h1>
         </div>
         <div class="top-actions">
+          <a class="text-link" href="simulator.html">Data simulator</a>
           <a class="text-link" href="ml.html">ML method</a>
-          <div class="run-status" id="runStatus">Ready</div>
+          <div class="run-status" id="manualStatus">Ready</div>
         </div>
       </header>
 
-      <section class="workspace">
-        <aside class="control-panel">
+      <section class="manual-grid">
+        <aside class="control-panel manual-controls">
           <div class="field">
-            <label for="profile">Workload</label>
-            <select id="profile">
-              <option value="deadline_tight">Deadline tight</option>
-              <option value="balanced">Balanced</option>
-              <option value="io_heavy">I/O heavy</option>
-              <option value="bursty">Bursty</option>
+            <label for="manualAlgorithm">Algorithm</label>
+            <select id="manualAlgorithm">
+              <option value="ml_guided">ML-guided</option>
+              <option value="fifo">FIFO</option>
+              <option value="mlfq">MLFQ</option>
+              <option value="rr">Round Robin</option>
             </select>
           </div>
 
           <div class="field">
-            <label for="taskCount">Tasks</label>
-            <input id="taskCount" type="range" min="40" max="420" value="160" step="20" />
-            <output id="taskCountValue">160</output>
-          </div>
-
-          <div class="field">
-            <label for="load">Arrival pressure</label>
-            <input id="load" type="range" min="65" max="155" value="100" step="5" />
-            <output id="loadValue">100%</output>
-          </div>
-
-          <div class="field">
-            <label for="seed">Seed</label>
-            <input id="seed" type="number" min="1" max="9999" value="42" />
-          </div>
-
-          <div class="field">
-            <label for="contextSwitch">Context switch</label>
-            <input id="contextSwitch" type="range" min="0" max="8" value="1" step="1" />
-            <output id="contextSwitchValue">1 tick</output>
+            <label for="manualQuantum">Time quantum</label>
+            <input id="manualQuantum" type="range" min="1" max="12" value="3" step="1" />
+            <output id="manualQuantumValue">3 ticks</output>
           </div>
 
           <div class="button-row">
-            <button id="runButton" class="primary-button" type="button">Run</button>
-            <button id="randomizeButton" class="icon-button" type="button" aria-label="New seed" title="New seed">R</button>
+            <button id="manualRunButton" class="primary-button" type="button">Run schedule</button>
+            <button id="manualResetButton" class="icon-button" type="button" aria-label="Reset tasks" title="Reset tasks">R</button>
           </div>
 
-          <div class="selected-task" id="selectedTask">
-            <span>Selected task</span>
-            <strong>Hover a timeline segment</strong>
+          <div class="legend-box">
+            <strong>Task fields</strong>
+            <span><b>A</b> = arrival time</span>
+            <span><b>R</b> = required CPU runtime</span>
+            <span><b>D</b> = deadline</span>
+            <span><b>P</b> = priority, 0 low to 4 high</span>
           </div>
         </aside>
 
-        <section class="main-panel">
-          <div class="metric-strip" id="metricStrip"></div>
-
-          <div class="comparison-layout">
-            <section class="rank-section">
-              <div class="section-heading">
-                <h2>Scheduler comparison</h2>
-                <span id="bestScheduler">Best: --</span>
-              </div>
-              <div class="scheduler-table" id="schedulerTable"></div>
-            </section>
-
-            <section class="chart-section">
-              <div class="section-heading">
-                <h2>Performance</h2>
-                <div class="segmented" role="tablist" aria-label="Chart metric">
-                  <button class="segment is-active" data-metric="missRate" type="button">Miss</button>
-                  <button class="segment" data-metric="turnaround" type="button">Turn</button>
-                  <button class="segment" data-metric="switches" type="button">Switch</button>
-                </div>
-              </div>
-              <div class="bar-chart" id="barChart"></div>
-            </section>
+        <section class="queue-panel">
+          <div class="section-heading">
+            <h2>Process queue</h2>
+            <button id="addTaskButton" class="small-button" type="button">Add task</button>
           </div>
+          <div class="manual-table" id="manualTable"></div>
+        </section>
+      </section>
 
-          <section class="timeline-section">
-            <div class="section-heading">
-              <h2>Execution timeline</h2>
-              <select id="timelineScheduler" aria-label="Timeline scheduler"></select>
-            </div>
-            <div class="playback-panel">
-              <div class="playback-buttons">
-                <button id="playButton" class="small-button" type="button">Play</button>
-                <button id="stepBackButton" class="small-button" type="button">-10</button>
-                <button id="stepForwardButton" class="small-button" type="button">+10</button>
-              </div>
-              <input id="timeScrubber" type="range" min="0" max="1" value="0" step="1" aria-label="Simulation time" />
-              <div class="time-readout" id="timeReadout">t=0</div>
-            </div>
-            <div class="live-strip" id="liveStrip"></div>
-            <div class="timeline" id="timeline"></div>
-          </section>
+      <section class="timeline-section manual-output">
+        <div class="section-heading">
+          <h2>Gantt chart</h2>
+          <span id="manualBadge">ML-guided</span>
+        </div>
+        <div class="manual-gantt" id="manualGantt"></div>
+      </section>
 
-          <section class="inspection-section">
-            <div class="section-heading">
-              <h2>Decision inspection</h2>
-              <span id="decisionSummary">Nearest dispatch</span>
-            </div>
-            <div class="inspection-layout">
-              <div class="zoom-stage" id="zoomStage"></div>
-              <div class="decision-panel" id="decisionPanel"></div>
-            </div>
-          </section>
+      <section class="comparison-layout">
+        <section class="rank-section">
+          <div class="section-heading">
+            <h2>Process metrics</h2>
+            <span id="manualAverages">Avg TAT -- / WT -- / RT --</span>
+          </div>
+          <div class="metrics-table" id="manualMetrics"></div>
+        </section>
 
-          <section class="task-section">
-            <div class="section-heading">
-              <h2>Task sample</h2>
-              <span id="sampleScope">First 12 arrivals</span>
-            </div>
-            <div class="task-grid" id="taskGrid"></div>
-          </section>
+        <section class="chart-section">
+          <div class="section-heading">
+            <h2>ML predictions</h2>
+            <span>Used by ML-guided scheduling</span>
+          </div>
+          <div class="prediction-list" id="predictionList"></div>
         </section>
       </section>
     </main>
 
-    <script src="app.js"></script>
+    <script src="manual.js"></script>
   </body>
 </html>

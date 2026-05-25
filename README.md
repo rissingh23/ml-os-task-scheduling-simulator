@@ -31,9 +31,11 @@ make test
 
 Open `frontend/index.html` in a browser.
 
-The frontend runs a browser-side simulator for FIFO, MLFQ, and ML-guided scheduling. It lets you change workload profile, task count, arrival pressure, seed, and context-switch cost, then compares deadline-miss rate, turnaround time, waiting time, response time, context switches, CPU timeline behavior, and per-dispatch scheduler decisions.
+The frontend has three pages:
 
-Open `frontend/ml.html` for the ML-guided scheduling explainer.
+- `frontend/index.html`: manual task builder. Add tasks, edit A/R/D/P fields, choose FIFO, MLFQ, Round Robin, or ML-guided, and inspect the Gantt chart, metrics, and ML predictions.
+- `frontend/simulator.html`: generated workload simulator. Change workload profile, task count, arrival pressure, seed, and context-switch cost, then compare deadline-miss rate, turnaround time, waiting time, response time, context switches, CPU timeline behavior, and per-dispatch scheduler decisions.
+- `frontend/ml.html`: ML-guided scheduling explainer.
 
 ## Run Benchmarks
 
