@@ -244,7 +244,7 @@ function renderPredictions(result) {
   els.predictions.innerHTML = `
     <div class="model-summary">
       <strong>${result.algorithm === "ml_guided" ? "XGBoost batch inference" : "Model not used"}</strong>
-      <span>${result.algorithm === "ml_guided" ? `trained rows ${model.rows || "--"} / RMSE ${model.rmse ? model.rmse.toFixed(2) : "--"}` : "Choose ML-guided to run backend prediction."}</span>
+      <span>${result.algorithm === "ml_guided" ? `${model.mode === "loaded_real_trace_model" ? "trained on Alibaba trace sample" : `trained rows ${model.rows || "--"}`} / lower score runs first` : "Choose ML-guided to run backend prediction."}</span>
     </div>
     ${ranked.map((task) => `
     <div class="prediction-row">

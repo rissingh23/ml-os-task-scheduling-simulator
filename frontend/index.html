@@ -37,12 +37,14 @@
               <option value="fifo">FIFO - First In First Out</option>
               <option value="mlfq">MLFQ - Multi-Level Feedback Queue</option>
             </select>
+            <p class="field-help">The rule the CPU uses to choose the next process.</p>
           </div>
 
           <div class="field">
             <label for="manualQuantum">Time quantum</label>
             <input id="manualQuantum" type="range" min="1" max="12" value="2" step="1" />
             <output id="manualQuantumValue">2 ticks</output>
+            <p class="field-help">How long a process may run before a preemptive scheduler can switch.</p>
           </div>
 
           <div class="button-row">
@@ -51,10 +53,10 @@
 
           <div class="legend-box">
             <strong>Task fields</strong>
-            <span><b>A</b> = arrival time</span>
-            <span><b>R</b> = required CPU runtime</span>
-            <span><b>D</b> = deadline</span>
-            <span><b>P</b> = priority, 0 low to 4 high</span>
+            <span><b>Arrival</b> = when the process enters the queue</span>
+            <span><b>Burst</b> = CPU time the process needs</span>
+            <span><b>Deadline</b> = time it should finish by</span>
+            <span><b>Priority</b> = importance, 0 low to 4 high</span>
           </div>
           <div class="legend-box algorithm-copy" id="algorithmCopy"></div>
         </aside>
@@ -76,6 +78,7 @@
           <h2>Gantt chart</h2>
           <span id="manualBadge">ML-guided</span>
         </div>
+        <p class="section-help">Each colored block shows which process owns the CPU during that time range.</p>
         <div class="manual-gantt" id="manualGantt"></div>
       </section>
 
@@ -85,14 +88,16 @@
             <h2>Process metrics</h2>
             <span id="manualAverages">Avg TAT -- / WT -- / RT --</span>
           </div>
+          <p class="section-help">CT is finish time. TAT is total time in the system. WT is time spent waiting. RT is first response delay.</p>
           <div class="metrics-table" id="manualMetrics"></div>
         </section>
 
         <section class="chart-section">
           <div class="section-heading">
             <h2>Trained model inference</h2>
-            <span>Linear model trained from simulator-exported features</span>
+            <span>Alibaba-trained XGBoost</span>
           </div>
+          <p class="section-help">Prediction estimates CPU runtime. Score combines prediction, deadline pressure, and priority; lower score runs sooner.</p>
           <div class="prediction-list" id="predictionList"></div>
         </section>
       </section>

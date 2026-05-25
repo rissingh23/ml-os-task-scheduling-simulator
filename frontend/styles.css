@@ -113,6 +113,17 @@ h2 {
   gap: 8px;
 }
 
+.field-help,
+.section-help {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.section-help {
+  margin: -6px 0 14px;
+}
+
 label {
   color: var(--muted);
   font-size: 12px;
@@ -1251,6 +1262,17 @@ body.manual-page {
   color: #1b9be4;
   font-size: 16px;
   font-weight: 700;
+}
+
+.manual-page .field-help,
+.manual-page .section-help {
+  color: #4d8db6;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.manual-page .section-help {
+  padding: 0 0 12px;
 }
 
 .manual-page .queue-panel {

@@ -23,7 +23,7 @@
         <section class="explainer-main">
           <h2>What the model predicts</h2>
           <p>
-            The online scheduler estimates how expensive a ready task is likely to be, then combines that runtime estimate with deadline pressure and priority. Lower score wins.
+            The model predicts how much CPU time a process is likely to need. The scheduler then turns that prediction into a score. A lower score means “run this process sooner.”
           </p>
           <div class="formula-box">
             score = predicted_runtime + 0.65 x deadline_slack - 2 x priority
@@ -81,9 +81,9 @@
           <span>Exported by the simulator</span>
         </div>
         <div class="feature-table">
-          <div><strong>requested_runtime</strong><span>Task runtime request or remaining CPU burst estimate.</span></div>
-          <div><strong>deadline_slack</strong><span>Time left before deadline at the dispatch point.</span></div>
-          <div><strong>priority</strong><span>User or workload priority, higher means more urgent.</span></div>
+          <div><strong>requested_runtime</strong><span>The burst time entered by the user or normalized from a trace.</span></div>
+          <div><strong>deadline_slack</strong><span>How much time remains before the deadline. More slack means less urgent.</span></div>
+          <div><strong>priority</strong><span>Importance of the task. Higher priority lowers the score so it can run earlier.</span></div>
           <div><strong>io_interval</strong><span>How frequently the task blocks for I/O.</span></div>
           <div><strong>io_duration</strong><span>Expected I/O wait duration after blocking.</span></div>
           <div><strong>ran_since_io</strong><span>CPU time consumed since the last I/O block.</span></div>
