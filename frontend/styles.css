@@ -1083,7 +1083,7 @@ body.manual-page {
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 22px 40px;
+  padding: 0 18px 32px;
   overflow-x: hidden;
 }
 
@@ -1096,8 +1096,8 @@ body.manual-page {
   align-items: center;
   justify-content: space-between;
   min-height: 80px;
-  margin: 0 -22px 28px;
-  padding: 10px 22px;
+  margin: 0 -18px 18px;
+  padding: 10px 18px;
   border-bottom: 1px solid var(--manual-line);
   background: rgba(244, 251, 255, 0.88);
 }
@@ -1199,8 +1199,8 @@ body.manual-page {
 
 .manual-page .manual-grid {
   grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
-  gap: 22px;
-  margin-bottom: 24px;
+  gap: 18px;
+  margin-bottom: 16px;
 }
 
 .manual-page .control-panel,
@@ -1216,8 +1216,8 @@ body.manual-page {
 }
 
 .manual-page .control-panel {
-  padding: 22px;
-  gap: 18px;
+  padding: 18px;
+  gap: 14px;
 }
 
 .manual-page label,
@@ -1296,14 +1296,14 @@ body.manual-page {
 }
 
 .manual-page .queue-panel .section-heading {
-  min-height: 70px;
+  min-height: 58px;
   margin: 0;
-  padding: 18px 20px;
+  padding: 14px 18px;
   border-bottom: 1px solid #cfeeff;
 }
 
 .queue-count {
-  padding: 9px 18px;
+  padding: 7px 14px;
   border: 2px solid var(--manual-line);
   border-radius: 12px;
   background: #dff3ff;
@@ -1321,7 +1321,7 @@ body.manual-page {
 .manual-page .manual-row {
   grid-template-columns: 68px repeat(4, minmax(74px, 1fr)) 44px;
   min-width: 0;
-  padding: 12px 16px;
+  padding: 9px 14px;
   border-bottom: 1px solid #d3efff;
 }
 
@@ -1330,7 +1330,7 @@ body.manual-page {
 }
 
 .manual-page .manual-row {
-  min-height: 62px;
+  min-height: 54px;
 }
 
 .manual-page .manual-row strong {
@@ -1339,7 +1339,7 @@ body.manual-page {
 }
 
 .manual-page .manual-row input {
-  height: 32px;
+  height: 30px;
   border-bottom: 3px solid var(--manual-line);
   color: var(--manual-deep);
   font-size: 17px;
@@ -1355,19 +1355,19 @@ body.manual-page {
 .add-process-wrap {
   display: grid;
   place-items: center;
-  min-height: 76px;
+  min-height: 56px;
   background: rgba(232, 247, 255, 0.38);
 }
 
 .add-process-button {
-  min-width: 180px;
-  height: 48px;
+  min-width: 168px;
+  height: 40px;
   border: 3px dashed var(--manual-line);
   border-radius: 16px;
   background: transparent;
   color: var(--manual-blue-2);
   cursor: pointer;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 900;
 }
 
@@ -1379,7 +1379,7 @@ body.manual-page {
 
 .manual-page .manual-output .section-heading {
   margin: 0;
-  padding: 18px 20px;
+  padding: 14px 18px;
   border-bottom: 1px solid #cfeeff;
   min-width: 0;
 }
@@ -1400,7 +1400,7 @@ body.manual-page {
 }
 
 .panel-body {
-  padding: 18px 20px 22px;
+  padding: 14px 18px 18px;
 }
 
 .manual-page .manual-gantt {
@@ -1442,11 +1442,11 @@ body.manual-page {
 .manual-page .comparison-layout {
   grid-template-columns: minmax(0, 1fr);
   width: 100%;
-  margin: 22px 0 0;
+  margin: 16px 0 0;
 }
 
 .manual-page .chart-section {
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 .manual-page .rank-section,
@@ -1458,7 +1458,7 @@ body.manual-page {
 .manual-page .rank-section .section-heading,
 .manual-page .chart-section .section-heading {
   margin: 0;
-  padding: 18px 20px;
+  padding: 14px 18px;
   border-bottom: 2px solid var(--manual-deep);
   flex-wrap: wrap;
   align-items: center;
@@ -1488,13 +1488,13 @@ body.manual-page {
 .manual-page .metrics-row {
   grid-template-columns: 70px repeat(7, minmax(42px, 1fr));
   min-width: 0;
-  padding: 12px;
+  padding: 10px 12px;
   border-bottom: 2px solid var(--manual-deep);
   text-align: center;
 }
 
 .manual-page .metrics-row {
-  min-height: 54px;
+  min-height: 48px;
   color: #8da0b7;
   font-size: 17px;
   font-weight: 900;
@@ -1525,6 +1525,22 @@ body.manual-page {
   border: 2px solid var(--manual-line);
   border-radius: 12px;
   background: rgba(231, 246, 255, 0.82);
+}
+
+.manual-page .model-summary.is-loading,
+.manual-page .prediction-row.is-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.manual-page .model-summary.is-loading::after,
+.manual-page .prediction-row.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  animation: loading-sweep 900ms linear infinite;
+  pointer-events: none;
 }
 
 .manual-page .model-summary strong {
@@ -1578,6 +1594,15 @@ body.manual-page {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes loading-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
   }
 }
 

@@ -1,6 +1,7 @@
 const state = {
   tasks: [],
   nextId: 1,
+  runId: 0,
 };
 
 const els = {
@@ -256,6 +257,27 @@ function renderPredictions(result) {
   `).join("")}`;
 }
 
+function renderPredictionLoading(taskCount) {
+  els.predictions.innerHTML = `
+    <div class="model-summary is-loading">
+      <strong>Running XGBoost batch inference</strong>
+      <span>Predicting runtime for ${taskCount} process${taskCount === 1 ? "" : "es"} before ranking ready tasks.</span>
+    </div>
+    <div class="prediction-row is-loading">
+      <strong>ML</strong>
+      <span>loading predictions</span>
+      <span>ranking scores</span>
+      <span>batch request</span>
+    </div>
+  `;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 async function requestSchedule(tasks, algorithm, quantum) {
   const response = await fetch("/api/schedule", {
     method: "POST",
@@ -270,13 +292,22 @@ async function requestSchedule(tasks, algorithm, quantum) {
 }
 
 async function run() {
+  const runId = state.runId + 1;
+  state.runId = runId;
   state.tasks = readTasksFromDom();
   const algorithm = els.algorithm.value;
   const quantum = Number(els.quantum.value);
   els.badge.textContent = algorithm === "ml_guided" ? "Predicting..." : "Simulating...";
+  if (algorithm === "ml_guided") {
+    renderPredictionLoading(state.tasks.length);
+  }
   els.runButton.disabled = true;
   try {
-    const result = await requestSchedule(state.tasks, algorithm, quantum);
+    const [result] = await Promise.all([
+      requestSchedule(state.tasks, algorithm, quantum),
+      algorithm === "ml_guided" ? sleep(420) : sleep(0),
+    ]);
+    if (runId !== state.runId) return;
     els.badge.textContent = `${algorithmLabel(algorithm)}${algorithm === "rr" || algorithm === "ml_guided" ? ` / q=${quantum}` : ""}`;
     renderGantt(result);
     renderMetrics(result);
@@ -287,13 +318,16 @@ async function run() {
       <span>${algorithmDescription(algorithm)}</span>
     `;
   } catch (error) {
+    if (runId !== state.runId) return;
     const fallback = simulateManual(state.tasks, algorithm, quantum);
     els.badge.textContent = "Backend unavailable";
     renderGantt(fallback);
     renderMetrics(fallback);
     els.predictions.innerHTML = `<div class="model-summary"><strong>XGBoost backend unavailable</strong><span>${error.message}</span></div>`;
   } finally {
-    els.runButton.disabled = false;
+    if (runId === state.runId) {
+      els.runButton.disabled = false;
+    }
   }
 }
 
