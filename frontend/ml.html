@@ -6,12 +6,15 @@
     <title>TaskSim Lab ML Method</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="lab-page ml-page">
     <main class="app-shell explainer-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Model inspection</p>
-          <h1>ML-guided scheduling</h1>
+      <header class="topbar lab-topbar">
+        <div class="manual-brand">
+          <div class="brand-mark">TL</div>
+          <div>
+            <h1>ML-guided scheduling</h1>
+            <p>TaskSim Lab Model Inspection</p>
+          </div>
         </div>
         <div class="top-actions">
           <a class="text-link" href="index.html">Task builder</a>
@@ -47,11 +50,11 @@
         <aside class="explainer-side">
           <div class="decision-card">
             <strong>Current model</strong>
-            <p>Loaded from `results/models/alibaba_xgboost_100k.json`, trained on 100,000 normalized Alibaba batch tasks.</p>
+            <p>Loaded from <code>models/alibaba_xgboost_100k.json</code>, trained on 100,000 normalized Alibaba batch tasks.</p>
           </div>
           <div class="decision-card">
             <strong>Manual page inference</strong>
-            <p>The task builder calls `/api/schedule`. For ML-guided mode, the backend predicts every submitted task with XGBoost before simulating.</p>
+            <p>The task builder calls <code>/api/schedule</code>. For ML-guided mode, the backend predicts every submitted task with XGBoost before simulating.</p>
           </div>
           <div class="decision-card">
             <strong>Real-data result</strong>
@@ -94,9 +97,9 @@
         <div class="rank-section">
           <h2>Training flow</h2>
           <ol class="plain-list">
-            <li>Download Alibaba `batch_task.csv`.</li>
+            <li>Download Alibaba <code>batch_task.csv</code>.</li>
             <li>Normalize rows into simulator tasks.</li>
-            <li>Export runtime features with `--mode export-features`.</li>
+            <li>Export runtime features with <code>--mode export-features</code>.</li>
             <li>Train XGBoost to predict observed runtime.</li>
             <li>Load the trained model in the backend.</li>
             <li>Batch-predict manual or generated tasks before scheduling.</li>
